@@ -1,5 +1,3 @@
-// import PropTypes from 'prop-types';
-// import { format } from 'date-fns';
 import {
   Avatar,
   Box,
@@ -14,11 +12,10 @@ import {
   TableRow,
   Typography
 } from '@mui/material';
-import { Scrollbar } from '../components/scrollbar';
-// import { getInitials } from 'src/utils/get-initials';
-const now = new Date();
+import { Scrollbar } from './scrollbar';
+import { useState } from 'react';
 
-export const CustomersTable = (props) => {
+export const ObjectsTable = (props) => {
   const {
     count = 0,
     items = [],
@@ -32,6 +29,25 @@ export const CustomersTable = (props) => {
     rowsPerPage = 0,
     selected = []
   } = props;
+
+  const [selectedRow, setSelectedRow] = useState(null);
+
+  const handleRowClick = (params) => {
+    setSelectedRow(params.id);
+  };
+
+  const getRowClassName = (params) => {
+    return params.id === selectedRow ? 'highlighted' : '';
+  };
+
+  const rows = props.items.map((object, index) => {
+    return {
+      id: object.etag,
+      object_name: object.object_name,
+      size: object.size,
+      etag: object.etag,
+    };
+  });
 
   const selectedSome = (selected.length > 0) && (selected.length < items.length);
   const selectedAll = (items.length > 0) && (selected.length === items.length);
@@ -60,27 +76,21 @@ export const CustomersTable = (props) => {
                   Name
                 </TableCell>
                 <TableCell>
-                  Email
+                  Size
                 </TableCell>
                 <TableCell>
-                  Location
-                </TableCell>
-                <TableCell>
-                  Phone
-                </TableCell>
-                <TableCell>
-                  Signed Up
+                  eTag
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((customer) => {
-                const isSelected = selected.includes(customer.id);
+              {rows.map((object) => {
+                const isSelected = selected.includes(object.id);
 
                 return (
                   <TableRow
                     hover
-                    key={customer.id}
+                    key={object.id}
                     selected={isSelected}
                   >
                     <TableCell padding="checkbox">
@@ -88,9 +98,9 @@ export const CustomersTable = (props) => {
                         checked={isSelected}
                         onChange={(event) => {
                           if (event.target.checked) {
-                            onSelectOne?.(customer.id);
+                            onSelectOne?.(object.id);
                           } else {
-                            onDeselectOne?.(customer.id);
+                            onDeselectOne?.(object.id);
                           }
                         }}
                       />
@@ -105,18 +115,15 @@ export const CustomersTable = (props) => {
                           {getInitials(customer.name)}
                         </Avatar> */}
                         <Typography variant="subtitle2">
-                          {customer.name}
+                          {object.object_name}
                         </Typography>
                       </Stack>
                     </TableCell>
                     <TableCell>
-                      {customer.email}
+                      {object.size}
                     </TableCell>
                     <TableCell>
-                      {customer.address.city}, {customer.address.state}, {customer.address.country}
-                    </TableCell>
-                    <TableCell>
-                      {customer.phone}
+                      {object.etag}
                     </TableCell>
                   </TableRow>
                 );

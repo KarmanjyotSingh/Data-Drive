@@ -4,7 +4,7 @@ import { styled } from '@mui/material/styles';
 import { SideNav } from './side-nav';
 import { TopNav } from './top-nav';
 import Data from './Data';
-import Page from './customers';
+// import Page from './dashboard';
 
 const SIDE_NAV_WIDTH = 280;
 
@@ -57,8 +57,8 @@ const Layout = () => {
       />
       <LayoutRoot>
         <LayoutContainer>
-          {/* <Data objects={[]}/> */}
-          <Page />
+          <Data objects={[]}/>
+          {/* <Page /> */}
         </LayoutContainer>
       </LayoutRoot>
     </>
