@@ -27,7 +27,8 @@ function stringAvatar(name) {
     sx: {
       bgcolor: stringToColor(name),
     },
-    children: `${name[0]}`,
+    //convert char to uppercase
+    children: `${name[0].toUpperCase()}`,
   };
 }
 
