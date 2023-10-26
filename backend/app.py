@@ -6,15 +6,6 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-
-# @app.after_request
-# def add_headers(response):
-#     response.headers.add("Access-Control-Allow-Origin", "http://localhost:3000")
-#     response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
-#     response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE")
-#     return response
-
-
 # Login (single user)
 @app.route("/login", methods=["POST"])
 def login():
@@ -46,6 +37,7 @@ def list_objects():
                 "last_modified": i.last_modified,
                 "content_type": i.content_type,
                 "etag": i.etag,
+                "url": client.get_objectURL(bucket_name, i.object_name),
             }
         )
     return jsonify({"objects": objects})
@@ -83,7 +75,7 @@ def delete_object():
 
 
 # Get object url from bucket
-@app.route("/get_objectURL", methods=["GET"])
+@app.route("/get_objectURL", methods=["POST"])
 def get_objectURL():
     bucket_name = request.json.get("bucket_name")
     object_name = request.json.get("object_name")
@@ -98,3 +90,7 @@ def create_bucket():
     bucket_name = request.json.get("bucket_name")
     client = Minio_Db()
     return jsonify({"status": client.create_bucket(bucket_name)})
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
