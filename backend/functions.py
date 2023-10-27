@@ -60,7 +60,7 @@ class Minio_Db:
             bucket = self.minioClient.bucket_exists(bucket_name)
             isSuccess = False
             if bucket:
-                self.minioClient.fput_object(bucket_name, object_name, data)
+                self.minioClient.put_object(bucket_name, object_name, data)
                 print("Data uploaded")
                 isSuccess = True
 

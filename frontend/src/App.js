@@ -2,8 +2,7 @@
 import './App.css';
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import Login from './components/Login.js';
-import HomePage from './components/Home.js';
-import Layout from './components/Home-react.js';
+import Dashboard from './components/HomeReact.js';
 
 function App() {
   return (
@@ -12,7 +11,7 @@ function App() {
        <Routes>
           <Route path="/" element={<Login/>}/>
         {/* <Route path="/home" element={<HomePage/>}/> */}
-          <Route path="/home" element={<Layout/>}/>
+          <Route path="/home" element={<Dashboard/>}/>
         </Routes>
       </BrowserRouter> 
     </div>

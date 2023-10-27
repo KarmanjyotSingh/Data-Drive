@@ -1,3 +1,6 @@
+import FilePreview from './FilePreview';
+import { extractFiletype, extractFiletypeIcon } from '../utils/extract-filetype';
+
 import * as React from 'react';
 import Link from '@mui/material/Link';
 import Table from '@mui/material/Table';
@@ -5,14 +8,9 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import { Typography } from '@mui/material';
+import { Button, Tab, Typography } from '@mui/material';
 import axios from 'axios';
-import FilePreview from './filePreview';
-import BasicModal from './modal';
-import PdfRender from './pdfViewer';
-import { extractFiletype, extractFiletypeIcon } from '../utils/extract-filetype';
 
-// Generate Order Data
 function createData(id, name, size, lastModified, etag, url) {
   return {
     name,
@@ -28,7 +26,7 @@ function preventDefault(event) {
   event.preventDefault();
 }
 
-export default function Orders() {
+export default function DataTable() {
   const [rows, setRows] = React.useState([]);
   React.useEffect(() => {
     axios.post('http://localhost:5000/list_objects', {
@@ -39,7 +37,6 @@ export default function Orders() {
         let id = 1;
         response.data.objects.forEach((object) => {
           row.push(createData(id, object.object_name, object.size, object.last_modified, object.etag, object));
-          console.log(object);  
         }
         );
         setRows(row);
@@ -70,14 +67,47 @@ export default function Orders() {
         </TableHead>
         <TableBody>
           {rows.map((row) => (
-            <TableRow key={row.etag} sx={{ cursor: 'pointer' }} hover >
-              <TableCell onClick={handleFileClick}>
+            <TableRow key={row.etag} sx={{ cursor: 'pointer', '&:hover': { '& button': { opacity: 1 } } }} hover >
+              <TableCell onClick={handleFileClick} sx={{ display: 'flex' }}>
+
                 <FilePreview
                   open={modalOpen}
                   fileName={row.name}
                   fileData={row.url}
                   type={extractFiletype(row.name)}
                 />
+                <Button
+                  onClick={handleFileClick}
+                  sx={{
+                    textTransform: 'none',
+                    opacity: 0,
+                    transition: 'opacity 0.2s ease-in-out',
+                    width: 10
+                  }} >
+                  hello1
+                </Button>
+
+                <Button
+                  onClick={handleFileClick}
+                  sx={{
+                    textTransform: 'none',
+                    opacity: 0,
+                    transition: 'opacity 0.2s ease-in-out',
+                    width: 10
+                  }} >
+                  hello2
+                </Button>
+                <Button
+                  onClick={handleFileClick}
+                  sx={{
+                    textTransform: 'none',
+                    opacity: 0,
+                    transition: 'opacity 0.2s ease-in-out',
+                    width: 10
+                  }} >
+                  hello2
+                </Button>
+
               </TableCell>
               <TableCell>{row.size}</TableCell>
               <TableCell>{row.lastModified}</TableCell>

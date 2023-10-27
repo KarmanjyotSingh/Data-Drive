@@ -1,9 +1,8 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import PdfRender from "./pdfViewer";
+import PdfRender from "../utils/pdfViewer";
 import { Modal, Box } from "@mui/material";
-import BasicModal from "./modal";
-
+import BasicModal from "./Modal";
 function data(props) {
     return {
         fileName: props.fileName,
@@ -29,7 +28,6 @@ function FilePreview(props) {
 
     const fetchedData = data(props);
     const [open, setOpen] = useState(true);
-    console.log(fetchedData.fileData.url);
     // useEffect(() => {
     //     setFetchedData(data(props));
     //     console.log(fetchedData);
@@ -56,7 +54,9 @@ function FilePreview(props) {
                     open={props.open}
                     fileName={fetchedData.fileName}
                     body={
-                        <img src={fetchedData.fileData.url}
+                        <img
+                            style={{ maxHeight: '100%', maxWidth: '100%' }}
+                            src={fetchedData.fileData.url}
                             alt={fetchedData.fileName}
                         />}>
                 </BasicModal>

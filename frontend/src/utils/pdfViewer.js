@@ -39,11 +39,10 @@ const PdfRender = (props) => {
                     <Document file={file} onLoadSuccess={({ numPages }) => setNumPages(numPages)} options={options}>
                         <div className='pdf-preview'>
                             <Page
-                                width={containerWidth}
                                 onLoadSuccess={({ width }) => setContainerWidth(width)}
                                 key={`page_${pageNumber}`}
                                 pageNumber={pageNumber}
-                                style={{ width: containerWidth }}
+                                style={{ width: '100%', height: '100%' }}
                             />
                         </div>
                         <div className='page-navigation'>

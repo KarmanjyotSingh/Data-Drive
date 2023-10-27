@@ -1,27 +1,19 @@
+import DataTable from './DataTable';
+import leftNavigationPane from './LeftNavigationPane';
+import BackgroundLetterAvatars from '../utils/user-icon';
+
 import * as React from 'react';
+import ls from 'local-storage';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import MuiDrawer from '@mui/material/Drawer';
-import Box from '@mui/material/Box';
+import { Stack, SvgIcon, Typography, Button, CssBaseline, Box, Toolbar, List, Divider, IconButton, Container, Grid, Paper, Link } from '@mui/material';
 import MuiAppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import Badge from '@mui/material/Badge';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
-import Link from '@mui/material/Link';
+import MuiDrawer from '@mui/material/Drawer';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle'; import leftNavigationPane from './leftNavigationPane';
-import Orders from './Order';
-import BackgroundLetterAvatars from '../utils/user-icon';
-import ls from 'local-storage';
-import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
 import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
-import { Stack, SvgIcon, Typography, Button } from '@mui/material';
+import { useRef } from 'react';
+import axios from 'axios';
+
 function Copyright(props) {
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
@@ -89,6 +81,42 @@ export default function Dashboard() {
   const toggleDrawer = () => {
     setOpen(!open);
   };
+
+  const fileInputRef = useRef(null);
+
+  const handleButtonClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileInputChange = (event) => {
+    const object = event.target.files[0];
+    let form = new FormData();
+    form.append('object', object);
+    console.log(object);
+    for (var key of form.entries()) {
+      console.log(key[0] + ', ' + key[1]);
+      console.log(key);
+      // key[1] is a file blob
+      console.log(key[1]);
+    }
+    // handle the selected file here
+    axios
+      .post("http://localhost:5000/insert_object",
+        {
+          bucket_name: "my-bucket",
+          form_data: form
+        })
+      .then(function (response) {
+
+        console.log(response);
+        alert("Upload Successful");
+      })
+      .catch(function (error) {
+        console.log(error);
+        alert("Upload Failed");
+      });
+  };
+
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -170,22 +198,31 @@ export default function Dashboard() {
                   </Typography>
                 </Stack>
                 <div>
-                <Stack
+                  <Stack
                     alignItems="center"
                     direction="row"
                     spacing={1}
                   >
-                    <Button
-                      color="inherit"
-                      startIcon={(
-                        <SvgIcon fontSize="small">
-                          <ArrowUpOnSquareIcon />
-                        </SvgIcon>
-                      )}
-                    >
-                      Upload
-                    </Button>
-                    <Button
+                    <div>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        onChange={handleFileInputChange}
+                      />
+                      <Button
+                        color="inherit"
+                        startIcon={(
+                          <SvgIcon fontSize="small">
+                            <ArrowUpOnSquareIcon />
+                          </SvgIcon>
+                        )}
+                        onClick={handleButtonClick}
+                      >
+                        Upload
+                      </Button>
+                    </div>
+                    {/* <Button
                       color="inherit"
                       startIcon={(
                         <SvgIcon fontSize="small">
@@ -194,7 +231,7 @@ export default function Dashboard() {
                       )}
                     >
                       Download
-                    </Button>
+                    </Button> */}
                   </Stack>
                 </div>
               </Stack>
@@ -202,7 +239,7 @@ export default function Dashboard() {
                 {/* Recent Orders */}
                 <Grid item xs={12}>
                   <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                    <Orders />
+                    <DataTable />
                   </Paper>
                 </Grid>
               </Grid>

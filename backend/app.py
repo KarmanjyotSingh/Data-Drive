@@ -1,10 +1,31 @@
 from flask import Flask, jsonify, request
 from functions import Minio_Db
 import json
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
-CORS(app)
+cors = CORS(app)
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
+
+# Origins = [
+#     "http://localhost:3000",  # React
+#     "http://127.0.0.1:3000",  # React
+# ]
+
+# cors = CORS(
+#     app,
+#     resources={
+#         r"/*": {
+#             "Access-Control-Allow-Origin": Origins,
+#             "Access-Control-Allow-Credentials": True,
+#             "supports_credentials": True,
+#         },
+#     },
+#     supports_credentials=True,
+#     expose_headers="*",
+# )
+# set max content length to 16mb
+
 
 # Login (single user)
 @app.route("/login", methods=["POST"])
@@ -46,13 +67,21 @@ def list_objects():
 # Insert object into bucket
 @app.route("/insert_object", methods=["POST"])
 def insert_object():
-    bucket_name = request.json.get("bucket_name")
-    object_name = request.json.get("object_name")
+    # object_name = request.json.get("object_name")
+    # client = Minio_Db()
+    # file_path = request.json.get("file_path")
+    # return jsonify(
+    #     {"status": client.insert_object(file_path, bucket_name, object_name)}
+    # )
     client = Minio_Db()
-    file_path = request.json.get("file_path")
-    return jsonify(
-        {"status": client.insert_object(file_path, bucket_name, object_name)}
-    )
+    bucket_name = request.json.get("bucket_name")
+    object = request.json.get("form_data")
+    object = object["object"]
+    object.save()
+    # object_name = object.name
+    # return jsonify({"status": client.insert_object(object, bucket_name, object_name)})
+    return jsonify({"hellp": request.json})
+    return "hello"
 
 
 # Delete object from bucket
