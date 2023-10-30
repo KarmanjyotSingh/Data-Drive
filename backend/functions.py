@@ -142,3 +142,28 @@ class Minio_Db:
             print("Not able to get data from minio / ", (ex))
 
         return url
+
+   
+    def get_downloadURL(self, bucket_name, object_name):
+        """
+        fetch object download url from bucket
+        :param bucket_name: Container name in Minio : str
+        :param object_name: name of minio object : str
+        :return: url : str
+        """
+        url = None
+        try:
+            bucket = self.minioClient.bucket_exists(bucket_name)
+            if bucket:
+                url = self.minioClient.presigned_get_object(
+                    bucket_name, object_name
+                )
+                print("Object url fetched sucessfully")
+
+            else:
+                print("Bucket does not exist")
+
+        except S3Error as ex:
+            print("Not able to get data from minio / ", (ex))
+
+        return url

@@ -1,4 +1,4 @@
-import DataTable from './DataTable';
+import DataTable from './NewDataTable';
 import leftNavigationPane from './LeftNavigationPane';
 import BackgroundLetterAvatars from '../utils/user-icon';
 
@@ -90,8 +90,12 @@ export default function Dashboard() {
 
   const handleFileInputChange = (event) => {
     const object = event.target.files[0];
+    // ser encoding to multipart/form-data
+
     let form = new FormData();
+    form.enctype = "multipart/form-data";
     form.append('object', object);
+    
     console.log(object);
     for (var key of form.entries()) {
       console.log(key[0] + ', ' + key[1]);
@@ -104,11 +108,12 @@ export default function Dashboard() {
       .post("http://localhost:5000/insert_object",
         {
           bucket_name: "my-bucket",
-          form_data: form
+          form_data: form,
+         
         })
       .then(function (response) {
 
-        console.log(response);
+        console.log(response.data);
         alert("Upload Successful");
       })
       .catch(function (error) {

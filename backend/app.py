@@ -2,30 +2,14 @@ from flask import Flask, jsonify, request
 from functions import Minio_Db
 import json
 from flask_cors import CORS, cross_origin
+import logging
 
 app = Flask(__name__)
-cors = CORS(app)
+cors = CORS(app,resources={r'/*':{"origins":'*'}})
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
+app.config['CORS_HEADERS'] = 'Content-Type'
 
-# Origins = [
-#     "http://localhost:3000",  # React
-#     "http://127.0.0.1:3000",  # React
-# ]
-
-# cors = CORS(
-#     app,
-#     resources={
-#         r"/*": {
-#             "Access-Control-Allow-Origin": Origins,
-#             "Access-Control-Allow-Credentials": True,
-#             "supports_credentials": True,
-#         },
-#     },
-#     supports_credentials=True,
-#     expose_headers="*",
-# )
-# set max content length to 16mb
-
+logging.getLogger('flask_cors').level = logging.DEBUG
 
 # Login (single user)
 @app.route("/login", methods=["POST"])
@@ -36,7 +20,6 @@ def login():
         return jsonify({"status": "1"}), 200
     else:
         return jsonify({"status": "0"}), 401
-
 
 # Logout
 @app.route("/logout", methods=["POST"])
@@ -66,6 +49,7 @@ def list_objects():
 
 # Insert object into bucket
 @app.route("/insert_object", methods=["POST"])
+@cross_origin()
 def insert_object():
     # object_name = request.json.get("object_name")
     # client = Minio_Db()
@@ -76,12 +60,12 @@ def insert_object():
     client = Minio_Db()
     bucket_name = request.json.get("bucket_name")
     object = request.json.get("form_data")
-    object = object["object"]
-    object.save()
+    logging.debug(object)
+    print(object)
     # object_name = object.name
     # return jsonify({"status": client.insert_object(object, bucket_name, object_name)})
-    return jsonify({"hellp": request.json})
-    return "hello"
+    return jsonify({"hellp": request.form})
+    # return "hello"
 
 
 # Delete object from bucket
@@ -92,18 +76,16 @@ def delete_object():
     client = Minio_Db()
     return jsonify({"status": client.delete_object(bucket_name, object_name)})
 
+# Get object download url from bucket
+@app.route("/get_downloadURL", methods=["POST"])
+def get_downloadURL():
+    bucket_name = request.json.get("bucket_name")
+    object_name = request.json.get("object_name")
+    client = Minio_Db()
+    url = client.get_downloadURL(bucket_name, object_name)
+    return jsonify({"url": url})
 
-# Get object from bucket (return data to frontend)
-# @app.route("/get_object", methods=["GET"])
-# def get_object():
-#     bucket_name = request.json.get("bucket_name")
-#     object_name = request.json.get("object_name")
-#     client = Minio_Db()
-#     data = client.get_object(bucket_name, object_name)
-#     return jsonify({"data": data})
-
-
-# Get object url from bucket
+# Get object url from bucket for preview
 @app.route("/get_objectURL", methods=["POST"])
 def get_objectURL():
     bucket_name = request.json.get("bucket_name")
@@ -112,14 +94,12 @@ def get_objectURL():
     url = client.get_objectURL(bucket_name, object_name)
     return jsonify({"url": url})
 
-
 # Create a new bucket for a user
 @app.route("/create_bucket", methods=["POST"])
 def create_bucket():
     bucket_name = request.json.get("bucket_name")
     client = Minio_Db()
     return jsonify({"status": client.create_bucket(bucket_name)})
-
 
 if __name__ == "__main__":
     app.run(debug=True)

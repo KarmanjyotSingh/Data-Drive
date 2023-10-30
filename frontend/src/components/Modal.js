@@ -4,6 +4,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import { extractFiletypeIcon } from '../utils/extract-filetype';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 const style = {
     position: 'absolute',
@@ -30,11 +31,7 @@ const BasicModal = (props) => {
         <div>
             <Button onClick={handleOpen} sx={{ fontFamily: 'monospace' }}>
                 {
-                    extractFiletypeIcon(props.fileName)
-                }
-                &nbsp;
-                {
-                    props.fileName
+                    <VisibilityIcon />
                 }
             </Button>
             <Modal
