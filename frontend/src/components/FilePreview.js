@@ -95,7 +95,7 @@ function FilePreview(props) {
         ></BasicModal>
       ) : (
         <BasicModal
-          open={true}
+          open={props.open}
           title="File Type Not Supported"
           body={
             <img src="https://static.thenounproject.com/png/3876328-200.png" />

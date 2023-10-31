@@ -31,9 +31,10 @@ def logout():
 @app.route("/list_objects", methods=["POST"])
 def list_objects():
     bucket_name = request.json.get("bucket_name")
+    prefix = request.json.get("prefix")
     client = Minio_Db()
     objects = []
-    for i in client.list_objects(bucket_name):
+    for i in client.list_objects(bucket_name, prefix):
         objects.append(
             {
                 "object_name": i.object_name,
@@ -100,6 +101,15 @@ def create_bucket():
     bucket_name = request.json.get("bucket_name")
     client = Minio_Db()
     return jsonify({"status": client.create_bucket(bucket_name)})
+
+# create folder in bucket
+@app.route("/create_folder", methods=["POST"])
+def create_folder():
+    bucket_name = request.json.get("bucket_name")
+    folder_name = request.json.get("folder_name")
+    client = Minio_Db()
+    return jsonify({"status": client.create_folder(bucket_name, folder_name)})
+
 
 if __name__ == "__main__":
     app.run(debug=True)

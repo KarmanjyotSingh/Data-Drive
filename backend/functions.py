@@ -1,7 +1,7 @@
 from minio import Minio
 from minio.error import S3Error
 import config
-
+import io
 
 class Minio_Db:
     def __init__(self):
@@ -98,17 +98,21 @@ class Minio_Db:
 
         return isSuccess
 
-    def list_objects(self, bucket_name):
+    def list_objects(self, bucket_name, folder_name = ""):
         """
         fetch all object details from bucket
         :param bucket_name: Container name in Minio : str
         :return: objects : list
         """
+        # remove the first character if it is "/"
+        if folder_name.startswith("/"):
+            folder_name = folder_name[1:]
+
         objects = []
         try:
             bucket = self.minioClient.bucket_exists(bucket_name)
             if bucket:
-                objects = self.minioClient.list_objects(bucket_name, recursive=True)
+                objects = self.minioClient.list_objects(bucket_name, recursive=False, prefix=folder_name)
                 print("Objects fetched sucessfully")
 
             else:
@@ -119,6 +123,30 @@ class Minio_Db:
 
         return objects
 
+    def create_folder(self, bucket_name, folder_name):
+        """
+        create folder in bucket
+        :param bucket_name: Container name in Minio : str
+        :param folder_name: name of folder : str
+        :return: status : True or False
+        """
+        try:
+            bucket = self.minioClient.bucket_exists(bucket_name)
+            isSuccess = False
+            if bucket:
+                # since minio does not have folder concept, we are creating a dummy object with empty data
+                self.minioClient.put_object(bucket_name, folder_name + "/", io.BytesIO(b""), 0)
+
+                print("Folder created sucessfully")
+                isSuccess = True
+
+            else:
+                print("Folder can't be created because Bucket is not available")
+
+        except S3Error as ex:
+            print("Folder can not be created/ ", (ex))
+
+        return isSuccess
     def get_objectURL(self, bucket_name, object_name):
         """
         fetch object url from bucket

@@ -3,22 +3,64 @@ import axios from "axios";
 import Button from "@mui/material/Button";
 import { DataGrid, GridColDef, GridApi, GridCellValue } from "@mui/x-data-grid";
 import FilePreview from "./FilePreview";
-import { extractFiletype } from "../utils/extract-filetype";
+import {
+  extractFiletype,
+  extractFiletypeIcon,
+} from "../utils/extract-filetype";
 import DownloadIcon from "@mui/icons-material/Download";
 import DeleteIcon from "@mui/icons-material/Delete";
+import FolderIcon from "@mui/icons-material/Folder";
+import Folder from "@mui/icons-material/Folder";
+import { red, yellow } from "@mui/material/colors";
+
+function getFileSize(bytes, dp = 1) {
+  const thresholdBytes = 1024;
+  if (Math.abs(bytes) < thresholdBytes) {
+    return bytes + " B";
+  }
+  const units = ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+
+  let u = -1;
+  const r = 10 ** dp;
+
+  do {
+    bytes /= thresholdBytes;
+    ++u;
+  } while (
+    Math.round(Math.abs(bytes) * r) / r >= thresholdBytes &&
+    u < units.length - 1
+  );
+
+  return bytes.toFixed(dp) + " " + units[u];
+}
+
+function isFolder(name) {
+  return name.endsWith("/");
+}
 
 function createData(id, name, size, lastModified, etag, url) {
   return {
-    id: etag,
-    name,
-    size,
+    id,
+    name: name,
+    size: isFolder(name) ? "-" : getFileSize(size),
     lastModified,
     etag,
     url,
   };
 }
 
-export default function DataGridDemo() {
+function previewName(name) {
+  if (isFolder(name)) {
+    let last = name.slice(0, name.length - 1);
+    let arr = last.split("/");
+    return arr[arr.length - 1];
+  } else {
+    let arr = name.split("/");
+    return arr[arr.length - 1];
+  }
+}
+
+export default function DataGridDemo(props) {
   const [rows, setRows] = React.useState([]);
   const [modalOpen, setModalOpen] = React.useState(false);
 
@@ -60,26 +102,83 @@ export default function DataGridDemo() {
       .then((response) => {
         console.log(response);
         //  delete the row from the table
-         setRows(rows.filter((row) => row.name !== props.name));
+        setRows(rows.filter((row) => row.name !== props.name));
       })
       .catch((error) => {
         console.log(error);
       });
   };
 
+  const handleFolderClick = (props) => {
+    const folder_name = previewName(props.name);
+    const path = props.currentDirectory + folder_name + "/";
+    props.setCurrentDirectory(path);
+    console.log(props);
+  };
   const columns = [
     {
       field: "name",
       headerName: "File Name",
       width: 400,
       sortable: true,
+      renderCell: (params) => {
+        return (
+          <React.Fragment>
+            {isFolder(params.api.getCellValue(params.id, "name")) ? (
+              // change color to yellow
+              <FolderIcon color="yellow" />
+            ) : (
+              extractFiletypeIcon(params.api.getCellValue(params.id, "name"))
+            )}
+            &nbsp; &nbsp;
+            {isFolder(params.api.getCellValue(params.id, "name")) ? (
+              <Button
+                onClick={() =>
+                  handleFolderClick({
+                    name: params.api.getCellValue(params.id, "name"),
+                    currentDirectory: props.currentDirectory,
+                    setCurrentDirectory: props.setCurrentDirectory,
+                  })
+                }
+                sx={{
+                  textTransform: "none",
+                  opacity: 1,
+                  transition: "opacity 0.2s ease-in-out",
+                  width: 10,
+                }}
+              >
+                {previewName(params.api.getCellValue(params.id, "name"))}
+              </Button>
+            ) : (
+              <>{previewName(params.api.getCellValue(params.id, "name"))}</>
+            )}
+          </React.Fragment>
+        );
+      },
     },
-    { field: "size", headerName: "<Size>", width: 130 },
+    {
+      field: "size",
+      headerName: "Size",
+      width: 150,
+      //  align cell to the right
+      headerAlign: "right",
+      align: "right",
+    },
+    {
+      field: "lastModified",
+      headerName: "Last Modified",
+      width: 400,
+      headerAlign: "center",
+      align: "center",
+    },
     {
       field: "actions",
-      headerName: "Actions",
+      headerName: "",
       sortable: false,
-      width: 200,
+      width: 450,
+      align: "right",
+      headerAlign: "right",
+      // disa
       renderCell: (params) => {
         const onClick = (e) => {
           e.stopPropagation(); // don't select this row after clicking
@@ -94,16 +193,22 @@ export default function DataGridDemo() {
 
         return (
           <React.Fragment>
-            <FilePreview
-              open={modalOpen}
-              fileName="Preview"
-              fileData={params.api.getCellValue(params.id, "url")}
-              type={extractFiletype(params.api.getCellValue(params.id, "name"))}
-            />
+            {!isFolder(params.api.getCellValue(params.id, "name")) ? (
+              <FilePreview
+                open={modalOpen}
+                fileName="Preview"
+                fileData={params.api.getCellValue(params.id, "url")}
+                type={extractFiletype(
+                  params.api.getCellValue(params.id, "name")
+                )}
+              />
+            ) : null}
             <Button
-              onClick={() => handleDownloadClick({
-                name: params.api.getCellValue(params.id, "name"),
-              })}
+              onClick={() =>
+                handleDownloadClick({
+                  name: params.api.getCellValue(params.id, "name"),
+                })
+              }
               sx={{
                 textTransform: "none",
                 opacity: 1,
@@ -114,9 +219,11 @@ export default function DataGridDemo() {
               <DownloadIcon />
             </Button>
             <Button
-              onClick={() => handleDeleteClick({
-                name: params.api.getCellValue(params.id, "name"),
-              })}
+              onClick={() =>
+                handleDeleteClick({
+                  name: params.api.getCellValue(params.id, "name"),
+                })
+              }
               sx={{
                 textTransform: "none",
                 opacity: 1,
@@ -136,6 +243,7 @@ export default function DataGridDemo() {
     axios
       .post("http://localhost:5000/list_objects", {
         bucket_name: "my-bucket",
+        prefix: props.currentDirectory.substring(1),
       })
       .then((response) => {
         let row = [];
@@ -151,29 +259,37 @@ export default function DataGridDemo() {
               object
             )
           );
+          id += 1;
+          console.log(object.object_name);
         });
         setRows(row);
       })
       .catch((error) => {
         console.log(error);
       });
-  }, []);
+  }, [props.currentDirectory]);
 
   return (
-    <div style={{ height: 400, width: "100%" }}>
+    <div style={{ height: 600, width: "100%" }}>
       <DataGrid
         rows={rows}
-        columns={columns} 
-        
-        isRowSelectable={(params) => false} 
+        columns={columns}
+        isRowSelectable={(params) => false}
         // checkboxSelection
+        //disable menu filters
+        disableColumnMenu
         sx={{
           boxShadow: 2,
           border: 2,
           borderColor: "#2E3B55",
           "& .MuiDataGrid-cell:hover": {
-            color: "primary.main",
-          }
+            color: red[500],
+          },
+          //headers bold, font size 16
+          "& .MuiDataGrid-columnHeaderTitle": {
+            fontWeight: "bold",
+            fontSize: 16,
+          },
         }}
       />
     </div>

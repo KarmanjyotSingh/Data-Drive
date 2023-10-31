@@ -1,28 +1,55 @@
-import DataTable from './NewDataTable';
-import leftNavigationPane from './LeftNavigationPane';
-import BackgroundLetterAvatars from '../utils/user-icon';
+import DataTable from "./NewDataTable";
+import leftNavigationPane from "./LeftNavigationPane";
+import BackgroundLetterAvatars from "../utils/user-icon";
 
-import * as React from 'react';
-import ls from 'local-storage';
-import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
-import { Stack, SvgIcon, Typography, Button, CssBaseline, Box, Toolbar, List, Divider, IconButton, Container, Grid, Paper, Link } from '@mui/material';
-import MuiAppBar from '@mui/material/AppBar';
-import MuiDrawer from '@mui/material/Drawer';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
-import { useRef } from 'react';
-import axios from 'axios';
-
+import * as React from "react";
+import ls from "local-storage";
+import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
+import {
+  Stack,
+  SvgIcon,
+  Typography,
+  Button,
+  CssBaseline,
+  Box,
+  Toolbar,
+  List,
+  Divider,
+  IconButton,
+  Container,
+  Grid,
+  Paper,
+  Link,
+} from "@mui/material";
+import MuiAppBar from "@mui/material/AppBar";
+import MuiDrawer from "@mui/material/Drawer";
+import MenuIcon from "@mui/icons-material/Menu";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ArrowUpOnSquareIcon from "@heroicons/react/24/solid/ArrowUpOnSquareIcon";
+import { useRef } from "react";
+import ViewListIcon from "@mui/icons-material/ViewList";
+import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
+import ViewCarouselIcon from "@mui/icons-material/ViewCarousel";
+import axios from "axios";
+import { Modal } from "@mui/material";
+import TextField from "@mui/material/TextField";
 function Copyright(props) {
   return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://github.com/SBiswal02/Data-Drive_Red-flags">
+    <Typography
+      variant="body2"
+      color="text.secondary"
+      align="center"
+      {...props}
+    >
+      {"Copyright © "}
+      <Link
+        color="inherit"
+        href="https://github.com/SBiswal02/Data-Drive_Red-flags"
+      >
         Website designed by Redflags
-      </Link>{' '}
+      </Link>{" "}
       {new Date().getFullYear()}
-      {'.'}
+      {"."}
     </Typography>
   );
 }
@@ -30,54 +57,109 @@ function Copyright(props) {
 const drawerWidth = 240;
 
 const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: (prop) => prop !== 'open',
+  shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(['width', 'margin'], {
+  transition: theme.transitions.create(["width", "margin"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
   }),
   ...(open && {
     marginLeft: drawerWidth,
     width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
+    transition: theme.transitions.create(["width", "margin"], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
   }),
 }));
 
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    '& .MuiDrawer-paper': {
-      position: 'relative',
-      whiteSpace: 'nowrap',
-      width: drawerWidth,
-      transition: theme.transitions.create('width', {
+const Drawer = styled(MuiDrawer, {
+  shouldForwardProp: (prop) => prop !== "open",
+})(({ theme, open }) => ({
+  "& .MuiDrawer-paper": {
+    position: "relative",
+    whiteSpace: "nowrap",
+    width: drawerWidth,
+    transition: theme.transitions.create("width", {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+    boxSizing: "border-box",
+    ...(!open && {
+      overflowX: "hidden",
+      transition: theme.transitions.create("width", {
         easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.enteringScreen,
+        duration: theme.transitions.duration.leavingScreen,
       }),
-      boxSizing: 'border-box',
-      ...(!open && {
-        overflowX: 'hidden',
-        transition: theme.transitions.create('width', {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.leavingScreen,
-        }),
-        width: theme.spacing(7),
-        [theme.breakpoints.up('sm')]: {
-          width: theme.spacing(9),
-        },
-      }),
-    },
-  }),
-);
+      width: theme.spacing(7),
+      [theme.breakpoints.up("sm")]: {
+        width: theme.spacing(9),
+      },
+    }),
+  },
+}));
 
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
+const modalBoxStyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  p: 4,
+};
 export default function Dashboard() {
   const [open, setOpen] = React.useState(true);
+  const [toggleListView, setToggleListView] = React.useState(false);
+  const [createFolderModalOpen, setCreateFolderModalOpen] =
+    React.useState(false);
+  const [currentDirectory, setCurrentDirectory] = React.useState("/");
+  
+  const handleFolderModalOpen = () => {
+    setCreateFolderModalOpen(true);
+  };
+  const handleFolderModalClose = () => {
+    setCreateFolderModalOpen(false);
+  };
+
+  const [folderName, setFolderName] = React.useState("");
+  const handleFolder = (event) => {
+    event.preventDefault();
+    setFolderName(event.target.value);
+  };
+
+  const handleFolderCreateClick = () => {
+    let path = currentDirectory + folderName;
+    //remove the first slash
+    path = path.substring(1);
+    axios
+      .post("http://localhost:5000/create_folder", {
+        bucket_name: "my-bucket",
+        folder_name: path,
+      })
+      .then((response) => {
+        console.log(response);
+        alert("Folder Created");
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("Folder Creation Failed");
+      });
+    setCreateFolderModalOpen(false);
+  }
+
+  // false = list view
+  // true = grid view
+
+  const toggleView = () => {
+    setToggleListView(!toggleListView);
+  };
+
   const toggleDrawer = () => {
     setOpen(!open);
   };
@@ -94,25 +176,22 @@ export default function Dashboard() {
 
     let form = new FormData();
     form.enctype = "multipart/form-data";
-    form.append('object', object);
-    
+    form.append("object", object);
+
     console.log(object);
     for (var key of form.entries()) {
-      console.log(key[0] + ', ' + key[1]);
+      console.log(key[0] + ", " + key[1]);
       console.log(key);
       // key[1] is a file blob
       console.log(key[1]);
     }
     // handle the selected file here
     axios
-      .post("http://localhost:5000/insert_object",
-        {
-          bucket_name: "my-bucket",
-          form_data: form,
-         
-        })
+      .post("http://localhost:5000/insert_object", {
+        bucket_name: "my-bucket",
+        form_data: form,
+      })
       .then(function (response) {
-
         console.log(response.data);
         alert("Upload Successful");
       })
@@ -122,15 +201,18 @@ export default function Dashboard() {
       });
   };
 
-
   return (
     <ThemeProvider theme={defaultTheme}>
-      <Box sx={{ display: 'flex' }}>
+      <Box sx={{ display: "flex" }}>
         <CssBaseline />
-        <AppBar style={{ background: '#2E3B55' }} position="absolute" open={open}>
+        <AppBar
+          style={{ background: "#2E3B55" }}
+          position="absolute"
+          open={open}
+        >
           <Toolbar
             sx={{
-              pr: '24px', // keep right padding when drawer closed
+              pr: "24px", // keep right padding when drawer closed
             }}
           >
             <IconButton
@@ -139,15 +221,15 @@ export default function Dashboard() {
               aria-label="open drawer"
               onClick={toggleDrawer}
               sx={{
-                marginRight: '36px',
-                ...(open && { display: 'none' }),
+                marginRight: "36px",
+                ...(open && { display: "none" }),
               }}
             >
               <MenuIcon />
             </IconButton>
             <Typography
               component="h1"
-              variant="h6"
+              variant="h5"
               color="inherit"
               noWrap
               sx={{ flexGrow: 1 }}
@@ -162,9 +244,9 @@ export default function Dashboard() {
         <Drawer variant="permanent" open={open}>
           <Toolbar
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
               px: [1],
             }}
           >
@@ -173,78 +255,111 @@ export default function Dashboard() {
             </IconButton>
           </Toolbar>
           <Divider />
-          <List component="nav">
-            {leftNavigationPane}
-          </List>
+          <List component="nav">{leftNavigationPane}</List>
         </Drawer>
         <Box
           component="main"
           sx={{
             backgroundColor: (theme) =>
-              theme.palette.mode === 'light'
+              theme.palette.mode === "light"
                 ? theme.palette.grey[100]
                 : theme.palette.grey[900],
             flexGrow: 1,
-            height: '100vh',
-            overflow: 'auto',
+            height: "100vh",
+            overflow: "auto",
           }}
         >
           <Toolbar />
           <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
             <Stack spacing={3}>
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                spacing={4}
-              >
+              <Stack direction="row" justifyContent="space-between" spacing={4}>
                 <Stack spacing={1}>
                   <Typography variant="h4">
-                    My Space
+                    {ls.get("email") + currentDirectory}
                   </Typography>
                 </Stack>
                 <div>
-                  <Stack
-                    alignItems="center"
-                    direction="row"
-                    spacing={1}
-                  >
-                    <div>
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        style={{ display: 'none' }}
-                        onChange={handleFileInputChange}
-                      />
-                      <Button
-                        color="inherit"
-                        startIcon={(
-                          <SvgIcon fontSize="small">
-                            <ArrowUpOnSquareIcon />
-                          </SvgIcon>
-                        )}
-                        onClick={handleButtonClick}
-                      >
-                        Upload
-                      </Button>
-                    </div>
-                    {/* <Button
-                      color="inherit"
-                      startIcon={(
-                        <SvgIcon fontSize="small">
-                          <ArrowDownOnSquareIcon />
-                        </SvgIcon>
+                  <Stack alignItems="center" direction="row" spacing={1}>
+                    <Button color="inherit">
+                      {toggleListView ? (
+                        <ViewCarouselIcon onClick={toggleView} />
+                      ) : (
+                        <ViewListIcon onClick={toggleView} />
                       )}
+                    </Button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      style={{ display: "none" }}
+                      onChange={handleFileInputChange}
+                    />
+                    <Button
+                      color="inherit"
+                      startIcon={
+                        <SvgIcon fontSize="small">
+                          <ArrowUpOnSquareIcon />
+                        </SvgIcon>
+                      }
+                      onClick={handleButtonClick}
                     >
-                      Download
-                    </Button> */}
+                      Upload File
+                    </Button>
+                    <Button
+                      color="inherit"
+                      onClick={handleFolderModalOpen}
+                      startIcon={
+                        <SvgIcon fontSize="small">
+                          <CreateNewFolderIcon />
+                        </SvgIcon>
+                      }
+                    >
+                      Create Folder
+                    </Button>
+                    <Modal
+                      open={createFolderModalOpen}
+                      onClose={handleFolderModalClose}
+                      aria-labelledby="modal-modal-title"
+                      aria-describedby="modal-modal-description"
+                    >
+                      <Box sx={modalBoxStyle}>
+                        <Typography
+                          id="modal-modal-title"
+                          variant="h6"
+                          component="h2"
+                        >
+                          Create Folder
+                        </Typography>
+                        <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                          <TextField
+                            id="outlined-basic"
+                            label="Folder Name"
+                            variant="outlined"
+                            fullWidth
+                            onChange={handleFolder}
+                          />
+                        </Typography>
+                        <Button
+                          sx={{ mt: 2 }}
+                          variant="contained"
+                          onClick={handleFolderCreateClick}
+                        >
+                          Create
+                        </Button>
+                      </Box>
+                    </Modal>
                   </Stack>
                 </div>
               </Stack>
               <Grid container spacing={3}>
                 {/* Recent Orders */}
                 <Grid item xs={12}>
-                  <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                    <DataTable />
+                  <Paper
+                    sx={{ p: 2, display: "flex", flexDirection: "column" }}
+                  >
+                    <DataTable
+                      setCurrentDirectory={setCurrentDirectory  }
+                      currentDirectory={currentDirectory}
+                    />
                   </Paper>
                 </Grid>
               </Grid>
