@@ -119,6 +119,7 @@ export default function Dashboard() {
   const [toggleListView, setToggleListView] = React.useState(false);
   const [createFolderModalOpen, setCreateFolderModalOpen] =
     React.useState(false);
+
   const [currentDirectory, setCurrentDirectory] = React.useState("/");
 
   const handleFolderModalOpen = () => {
@@ -128,6 +129,13 @@ export default function Dashboard() {
     setCreateFolderModalOpen(false);
   };
 
+  const [displayPath, setDisplayPath] = React.useState([]);
+
+  React.useEffect(() => {
+    const path = [ls.get("email"), ...currentDirectory.split("/")];
+    setDisplayPath(path);
+    console.log(path);
+  }, [currentDirectory]);
   const [folderName, setFolderName] = React.useState("");
   const handleFolder = (event) => {
     event.preventDefault();
@@ -276,7 +284,27 @@ export default function Dashboard() {
               <Stack direction="row" justifyContent="space-between" spacing={4}>
                 <Stack spacing={1}>
                   <Typography variant="h4">
-                    {ls.get("email") + currentDirectory}
+                    {
+                      // for each element in display path, create a link
+                      displayPath.map((path, index) => {
+                        if (path !== "")
+                          return (
+                            <Link
+                              key={index}
+                              href="#"
+                              onClick={(event) => {
+                                event.preventDefault();
+                                setCurrentDirectory(
+                                  "/" +
+                                    displayPath.slice(1, index + 1).join("/")
+                                );
+                              }}
+                            >
+                              {path + "/  "}
+                            </Link>
+                          );
+                      })
+                    }
                   </Typography>
                 </Stack>
                 <div>
@@ -357,18 +385,17 @@ export default function Dashboard() {
                   <Paper
                     sx={{ p: 2, display: "flex", flexDirection: "column" }}
                   >
-                    {
-                      toggleListView ? (
+                    {toggleListView ? (
                       <DataTable
                         setCurrentDirectory={setCurrentDirectory}
                         currentDirectory={currentDirectory}
-                      />) : (
-                        <ThumbnailView
+                      />
+                    ) : (
+                      <ThumbnailView
                         setCurrentDirectory={setCurrentDirectory}
                         currentDirectory={currentDirectory}
                       />
-                      )
-                    }
+                    )}
                   </Paper>
                 </Grid>
               </Grid>

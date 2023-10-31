@@ -14,7 +14,7 @@ import csv from "../Assets/csv_icon.png";
 import file from "../Assets/file_icon.png";
 import FilePreview from "./FilePreview";
 import { extractFiletype } from "../utils/extract-filetype";
-import BasicModal from "./Modal";
+import IconMenu from "./ContextMenu";
 
 const mapFileToIcon = {
   png: image,
@@ -108,6 +108,21 @@ export default function ThumbnailView(props) {
   const [fileData, setFileData] = React.useState("");
   const [fileName, setFileName] = React.useState("");
 
+  const [contextMenu, setContextMenu] = React.useState({
+    visible: false,
+    x: 0,
+    y: 0,
+  });
+
+  const handleContextMenu = (event) => {
+    event.preventDefault();
+    setContextMenu({ visible: true, x: event.clientX, y: event.clientY });
+  };
+
+  const handleClose = () => {
+    setContextMenu({ visible: false, x: 0, y: 0 });
+  };
+
   const handleFolderClick = (props) => {
     if (isFolder(props.name)) {
       const folder_name = previewName(props.name);
@@ -151,12 +166,20 @@ export default function ThumbnailView(props) {
       });
   }, [props.currentDirectory]);
   return (
-    <Grid style={{ height: 600, width: "100%" }} container spacing={3}>
+    <Grid
+      style={{ height: 600, width: "100%" }}
+      container
+      spacing={3}
+      onClick={handleClose}
+    >
       {rows.map((file, index) => (
         <Grid
           item
           xs={1}
           key={index}
+          onContextMenu={(event) => {
+            handleContextMenu(event);
+          }}
           onClick={() => {
             handleFolderClick({
               name: file.name,
@@ -166,6 +189,14 @@ export default function ThumbnailView(props) {
             });
           }}
         >
+          <IconMenu
+            sx={{
+              visibility: contextMenu.visible ? "visible" : "hidden",
+              position: "absolute",
+              top: contextMenu.y,
+              left: contextMenu.x,
+            }}
+          />
           <img src={getDisplayIconSrc(file.name)} alt={file.name} />
           {!isFolder(file.name) ? (
             <FilePreview
