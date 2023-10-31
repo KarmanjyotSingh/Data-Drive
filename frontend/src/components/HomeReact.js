@@ -33,6 +33,7 @@ import ViewCarouselIcon from "@mui/icons-material/ViewCarousel";
 import axios from "axios";
 import { Modal } from "@mui/material";
 import TextField from "@mui/material/TextField";
+import ThumbnailView from "./thumbNailView";
 function Copyright(props) {
   return (
     <Typography
@@ -119,7 +120,7 @@ export default function Dashboard() {
   const [createFolderModalOpen, setCreateFolderModalOpen] =
     React.useState(false);
   const [currentDirectory, setCurrentDirectory] = React.useState("/");
-  
+
   const handleFolderModalOpen = () => {
     setCreateFolderModalOpen(true);
   };
@@ -151,7 +152,7 @@ export default function Dashboard() {
         alert("Folder Creation Failed");
       });
     setCreateFolderModalOpen(false);
-  }
+  };
 
   // false = list view
   // true = grid view
@@ -356,10 +357,18 @@ export default function Dashboard() {
                   <Paper
                     sx={{ p: 2, display: "flex", flexDirection: "column" }}
                   >
-                    <DataTable
-                      setCurrentDirectory={setCurrentDirectory  }
-                      currentDirectory={currentDirectory}
-                    />
+                    {
+                      toggleListView ? (
+                      <DataTable
+                        setCurrentDirectory={setCurrentDirectory}
+                        currentDirectory={currentDirectory}
+                      />) : (
+                        <ThumbnailView
+                        setCurrentDirectory={setCurrentDirectory}
+                        currentDirectory={currentDirectory}
+                      />
+                      )
+                    }
                   </Paper>
                 </Grid>
               </Grid>

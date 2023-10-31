@@ -197,6 +197,7 @@ export default function DataGridDemo(props) {
               <FilePreview
                 open={modalOpen}
                 fileName="Preview"
+                showIcon={true}
                 fileData={params.api.getCellValue(params.id, "url")}
                 type={extractFiletype(
                   params.api.getCellValue(params.id, "name")

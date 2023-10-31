@@ -41,14 +41,18 @@ function FilePreview(props) {
     <React.Fragment>
       {fetchedData.type === "pdf" ? (
         <BasicModal
+          {...props}
           open={props.open}
+          showIcon={props.showIcon}
           fileName={fetchedData.fileName}
           body={<PdfRender fileData={fetchedData.fileData.url} />}
         ></BasicModal>
       ) : fetchedData.type === "image" ? (
         <BasicModal
+          {...props}
           open={props.open}
           fileName={fetchedData.fileName}
+          showIcon={props.showIcon}
           body={
             <img
               style={{
@@ -56,7 +60,7 @@ function FilePreview(props) {
                 display: "block",
                 marginLeft: "auto",
                 marginRight: "auto",
-                
+
                 maxHeight: "100%",
                 maxWidth: "100%",
               }}
@@ -74,8 +78,10 @@ function FilePreview(props) {
       ) : fetchedData.type === "audio" ? (
         <BasicModal
           open={props.open}
+          {...props}
           fileName={fetchedData.fileName}
           title={fetchedData.fileName}
+          showIcon={props.showIcon}
           body={
             <audio controls>
               <source src={fetchedData.fileData} type="audio/mpeg" />
@@ -85,7 +91,9 @@ function FilePreview(props) {
       ) : fetchedData.type === "video" ? (
         <BasicModal
           open={props.open}
+          {...props}
           fileName={fetchedData.fileName}
+          showIcon={props.showIcon}
           body={
             <video width="320" height="240" controls>
               <source src={fetchedData.fileData} type="video/mp4" />
@@ -96,7 +104,9 @@ function FilePreview(props) {
       ) : (
         <BasicModal
           open={props.open}
+          {...props}
           title="File Type Not Supported"
+          showIcon={props.showIcon}
           body={
             <img src="https://static.thenounproject.com/png/3876328-200.png" />
           }
