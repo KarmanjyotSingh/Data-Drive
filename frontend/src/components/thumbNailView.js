@@ -15,6 +15,7 @@ import file from "../Assets/file_icon.png";
 import FilePreview from "./FilePreview";
 import { extractFiletype } from "../utils/extract-filetype";
 import IconMenu from "./ContextMenu";
+import ls from "local-storage";
 
 const mapFileToIcon = {
   png: image,
@@ -139,7 +140,7 @@ export default function ThumbnailView(props) {
   React.useEffect(() => {
     axios
       .post("http://localhost:5000/list_objects", {
-        bucket_name: "my-bucket",
+        bucket_name: ls.get("email"),
         prefix: props.currentDirectory.substring(1),
       })
       .then((response) => {

@@ -34,6 +34,7 @@ import axios from "axios";
 import { Modal } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import ThumbnailView from "./thumbNailView";
+
 function Copyright(props) {
   return (
     <Typography
@@ -101,7 +102,6 @@ const Drawer = styled(MuiDrawer, {
   },
 }));
 
-// TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
 const modalBoxStyle = {
@@ -148,7 +148,7 @@ export default function Dashboard() {
     path = path.substring(1);
     axios
       .post("http://localhost:5000/create_folder", {
-        bucket_name: "my-bucket",
+        bucket_name: ls.get("email"),
         folder_name: path,
       })
       .then((response) => {
@@ -180,26 +180,16 @@ export default function Dashboard() {
   };
 
   const handleFileInputChange = (event) => {
-    const object = event.target.files[0];
-    // ser encoding to multipart/form-data
-
-    let form = new FormData();
-    form.enctype = "multipart/form-data";
-    form.append("object", object);
-
-    console.log(object);
-    for (var key of form.entries()) {
-      console.log(key[0] + ", " + key[1]);
-      console.log(key);
-      // key[1] is a file blob
-      console.log(key[1]);
-    }
-    // handle the selected file here
+    let object = event.target.files[0];
+    const form = new FormData();
+    form.append("file", object);
+    form.append("bucket_name", ls.get("email"));
+    form.append("folder_name", currentDirectory.substring(1));
+    console.log(form);
     axios
-      .post("http://localhost:5000/insert_object", {
-        bucket_name: "my-bucket",
-        form_data: form,
-      })
+      .post("http://localhost:5000/insert_object",
+        form
+      )
       .then(function (response) {
         console.log(response.data);
         alert("Upload Successful");
@@ -307,28 +297,45 @@ export default function Dashboard() {
                     }
                   </Typography>
                 </Stack>
-                <div>
+                <div style={{marginRight: "20px"}}> 
                   <Stack alignItems="center" direction="row" spacing={1}>
-                    <Button color="inherit">
+                    <Button color="inherit"
+                      sx={{
+                        borderRadius: "10px",
+                      }}
+                    >
                       {toggleListView ? (
                         <ViewCarouselIcon onClick={toggleView} />
                       ) : (
                         <ViewListIcon onClick={toggleView} />
                       )}
+
                     </Button>
                     <input
                       type="file"
                       ref={fileInputRef}
                       style={{ display: "none" }}
                       onChange={handleFileInputChange}
+                      encType="multipart/form-data"
                     />
                     <Button
-                      color="inherit"
                       startIcon={
                         <SvgIcon fontSize="small">
                           <ArrowUpOnSquareIcon />
                         </SvgIcon>
                       }
+                      sx={{
+                        // color white, background same as nabar
+                        color: "white",
+                        background: "#2E3B55",
+                        borderRadius: "10px",
+                        "&:hover": {
+                          background: "#1b2436",
+                        },
+                        //dont uppercase
+                        textTransform: "none",
+                        fontSize: "15px",
+                      }}
                       onClick={handleButtonClick}
                     >
                       Upload File
@@ -341,6 +348,18 @@ export default function Dashboard() {
                           <CreateNewFolderIcon />
                         </SvgIcon>
                       }
+                      sx={{
+                        // color white, background same as nabar
+                        color: "white",
+                        background: "#2E3B55",
+                        borderRadius: "10px",
+                        "&:hover": {
+                          background: "#1b2436",
+                        },
+                        //dont uppercase
+                        textTransform: "none",
+                        fontSize: "15px",
+                      }}
                     >
                       Create Folder
                     </Button>
@@ -380,10 +399,9 @@ export default function Dashboard() {
                 </div>
               </Stack>
               <Grid container spacing={3}>
-                {/* Recent Orders */}
                 <Grid item xs={12}>
                   <Paper
-                    sx={{ p: 2, display: "flex", flexDirection: "column" }}
+                    sx={{ p: 2, display: "flex", flexDirection: "column", borderRadius: "20px", marginRight: "30px"}}
                   >
                     {toggleListView ? (
                       <DataTable

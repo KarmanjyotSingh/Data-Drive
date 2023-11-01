@@ -1,3 +1,11 @@
+body{
+    background-image: url(../Assets/circle.gif);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+
+}
+
 .container{
     display: flex;
     flex-direction: column;
@@ -6,7 +14,7 @@
     margin: auto;
     margin-top: 40px;
     margin-bottom: 40px;
-    background: #fff;
+    background: transparent;
     padding-bottom: 30px;
     border-radius: 9px;
 }
@@ -38,6 +46,7 @@
     display: flex;
     flex-direction: column;
     gap: 25px;
+    height: 80%;
 }
 
 .input{
@@ -48,6 +57,7 @@
     height: 80px;
     background: #eaeaea;
     border-radius: 6px;
+    border: 1px solid #ffffff;
 }
 
 .input img{
@@ -73,7 +83,7 @@
 }
 
 .forgot-password span{
-    color: #4c00b4;
+    color: #797979;
     cursor: pointer;
     align-items: center;
 }
@@ -96,7 +106,7 @@
     font-size: 19px;
     font-weight: 700;
     cursor: pointer;
-
+    border: 3px solid #4c00b4;
 }
 
 .gray{

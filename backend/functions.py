@@ -2,6 +2,8 @@ from minio import Minio
 from minio.error import S3Error
 import config
 import io
+import os
+
 
 class Minio_Db:
     def __init__(self):
@@ -48,7 +50,7 @@ class Minio_Db:
 
         return data
 
-    def insert_object(self, data, bucket_name, object_name, toCreateNewBucket=False):
+    def insert_object(self, file, bucket_name, object_name, toCreateNewBucket=False):
         """
         insert object into bucket
         :param bucket_name: Container name in Minio : str
@@ -60,14 +62,19 @@ class Minio_Db:
             bucket = self.minioClient.bucket_exists(bucket_name)
             isSuccess = False
             if bucket:
-                self.minioClient.put_object(bucket_name, object_name, data)
+                file.save("temp" + file.filename)
+                file_data = open("temp" + file.filename, "rb")
+                file_stat = os.stat("temp" + file.filename)
+                size = file_stat.st_size
+                self.minioClient.put_object(bucket_name, object_name, file_data, size)
+                os.remove("temp" + file.filename)
                 print("Data uploaded")
                 isSuccess = True
 
             elif toCreateNewBucket:
                 self.minioClient.make_bucket(bucket_name)
                 print("Bucket created sucessfully")
-                self.insert_data(data, bucket_name, object_name)
+                self.insert_data(file, bucket_name, object_name)
                 isSuccess = True
 
         except S3Error as ex:
@@ -98,7 +105,7 @@ class Minio_Db:
 
         return isSuccess
 
-    def list_objects(self, bucket_name, folder_name = ""):
+    def list_objects(self, bucket_name, folder_name=""):
         """
         fetch all object details from bucket
         :param bucket_name: Container name in Minio : str
@@ -112,7 +119,9 @@ class Minio_Db:
         try:
             bucket = self.minioClient.bucket_exists(bucket_name)
             if bucket:
-                objects = self.minioClient.list_objects(bucket_name, recursive=False, prefix=folder_name)
+                objects = self.minioClient.list_objects(
+                    bucket_name, recursive=False, prefix=folder_name
+                )
                 print("Objects fetched sucessfully")
 
             else:
@@ -135,7 +144,9 @@ class Minio_Db:
             isSuccess = False
             if bucket:
                 # since minio does not have folder concept, we are creating a dummy object with empty data
-                self.minioClient.put_object(bucket_name, folder_name + "/", io.BytesIO(b""), 0)
+                self.minioClient.put_object(
+                    bucket_name, folder_name + "/", io.BytesIO(b""), 0
+                )
 
                 print("Folder created sucessfully")
                 isSuccess = True
@@ -147,6 +158,7 @@ class Minio_Db:
             print("Folder can not be created/ ", (ex))
 
         return isSuccess
+
     def get_objectURL(self, bucket_name, object_name):
         """
         fetch object url from bucket
@@ -171,7 +183,6 @@ class Minio_Db:
 
         return url
 
-   
     def get_downloadURL(self, bucket_name, object_name):
         """
         fetch object download url from bucket
@@ -183,9 +194,7 @@ class Minio_Db:
         try:
             bucket = self.minioClient.bucket_exists(bucket_name)
             if bucket:
-                url = self.minioClient.presigned_get_object(
-                    bucket_name, object_name
-                )
+                url = self.minioClient.presigned_get_object(bucket_name, object_name)
                 print("Object url fetched sucessfully")
 
             else:

@@ -12,6 +12,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import FolderIcon from "@mui/icons-material/Folder";
 import Folder from "@mui/icons-material/Folder";
 import { red, yellow } from "@mui/material/colors";
+import ls from "local-storage";
 
 function getFileSize(bytes, dp = 1) {
   const thresholdBytes = 1024;
@@ -66,7 +67,7 @@ export default function DataGridDemo(props) {
 
   const handleDownloadClick = (props) => {
     const object_name = props.name;
-    const bucket_name = "my-bucket";
+    const bucket_name = ls.get("email");
     console.log(props);
     axios
       .post("http://localhost:5000/get_downloadURL", {
@@ -92,7 +93,7 @@ export default function DataGridDemo(props) {
 
   const handleDeleteClick = (props) => {
     const object_name = props.name;
-    const bucket_name = "my-bucket";
+    const bucket_name = ls.get("email");
     console.log(props);
     axios
       .post("http://localhost:5000/delete_object", {
@@ -178,13 +179,10 @@ export default function DataGridDemo(props) {
       width: 450,
       align: "right",
       headerAlign: "right",
-      // disa
       renderCell: (params) => {
         const onClick = (e) => {
           e.stopPropagation(); // don't select this row after clicking
 
-          // const api = params.api;
-          // const thisRow = {};
 
           console.log(params);
 
@@ -243,7 +241,7 @@ export default function DataGridDemo(props) {
   React.useEffect(() => {
     axios
       .post("http://localhost:5000/list_objects", {
-        bucket_name: "my-bucket",
+        bucket_name: ls.get("email"),
         prefix: props.currentDirectory.substring(1),
       })
       .then((response) => {
@@ -271,22 +269,21 @@ export default function DataGridDemo(props) {
   }, [props.currentDirectory]);
 
   return (
-    <div style={{ height: 600, width: "100%" }}>
+    <div style={{ height: 600, width: "100%", margin: 0 }}>
       <DataGrid
         rows={rows}
         columns={columns}
         isRowSelectable={(params) => false}
-        // checkboxSelection
-        //disable menu filters
+        disableSelectionOnClick = {true}
+        disableColumnSelector = {true}
         disableColumnMenu
         sx={{
           boxShadow: 2,
-          border: 2,
-          borderColor: "#2E3B55",
+          borderRadius: "20px",
+          margin: 0,
           "& .MuiDataGrid-cell:hover": {
             color: red[500],
           },
-          //headers bold, font size 16
           "& .MuiDataGrid-columnHeaderTitle": {
             fontWeight: "bold",
             fontSize: 16,
