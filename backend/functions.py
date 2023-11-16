@@ -50,7 +50,9 @@ class Minio_Db:
 
         return data
 
-    def insert_object(self, file, bucket_name, object_name, toCreateNewBucket=False):
+    def insert_object(
+        self, file, bucket_name, object_name, toCreateNewBucket=False, metadata={}
+    ):
         """
         insert object into bucket
         :param bucket_name: Container name in Minio : str
@@ -66,7 +68,9 @@ class Minio_Db:
                 file_data = open("temp" + file.filename, "rb")
                 file_stat = os.stat("temp" + file.filename)
                 size = file_stat.st_size
-                self.minioClient.put_object(bucket_name, object_name, file_data, size)
+                self.minioClient.put_object(
+                    bucket_name, object_name, file_data, size, metadata=metadata
+                )
                 os.remove("temp" + file.filename)
                 print("Data uploaded")
                 isSuccess = True
@@ -204,3 +208,36 @@ class Minio_Db:
             print("Not able to get data from minio / ", (ex))
 
         return url
+
+    def metadata_object(self, bucket_name, object_name):
+        """
+        fetch object details from bucket
+        :param bucket_name: Container name in Minio : str
+        :param object_name: name of minio object : str
+        :return: object : object
+        """
+        metadata = {}
+        try:
+            bucket = self.minioClient.bucket_exists(bucket_name)
+            if bucket:
+                object = self.minioClient.stat_object(bucket_name, object_name)
+                metadata = object.metadata
+                metadata = dict(metadata)
+                metadata = {
+                    k: v
+                    for k, v in metadata.items()
+                    if k.startswith("x-amz-meta") or k == "Content-Type"
+                }
+                # remove x-amz-meta- from key
+                metadata = {
+                    k.replace("x-amz-meta-", ""): v for k, v in metadata.items()
+                }
+                print("Object details fetched sucessfully")
+
+            else:
+                print("Bucket does not exist")
+
+        except S3Error as ex:
+            print("Not able to get data from minio / ", (ex))
+
+        return metadata

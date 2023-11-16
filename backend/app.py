@@ -37,16 +37,19 @@ def list_objects():
     client = Minio_Db()
     objects = []
     for i in client.list_objects(bucket_name, prefix):
+        object_name = i.object_name
+        metadata = client.metadata_object(bucket_name, object_name)
         objects.append(
             {
                 "object_name": i.object_name,
                 "size": i.size,
                 "last_modified": i.last_modified,
-                "content_type": i.content_type,
                 "etag": i.etag,
+                "metadata": metadata,
                 "url": client.get_objectURL(bucket_name, i.object_name),
             }
         )
+    print(objects)
     return jsonify({"objects": objects})
 
 

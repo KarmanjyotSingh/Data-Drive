@@ -1,12 +1,27 @@
 from functions import Minio_Db
+from minio import Minio
+from minio.error import S3Error
+import config
+import io
+import os
 
-client = Minio_Db()
+client = Minio(
+    config.url,
+    access_key=config.access_key,
+    secret_key=config.secret_key,
+    secure=config.secure,
+)
 
 """
 insert Almanac-M23.pdf from Downloads folder to minio bucket bkt1
 """
-# file = "/home/sovvv/Downloads/Almanac-M23.pdf"
-# client.insert_data(file, "bkt1", "file.pdf")
+file = "/home/sovvv/Downloads/Almanac-M23.pdf"
+metadata = {"Year": "2023", "Semester": "Monsoon"}
+# client.put_object(
+#     "redflags", "string", io.BytesIO(b"Almanac-M23"), 11, metadata=metadata
+# )
+ret = client.stat_object("redflags", "string")
+print(ret.metadata)
 
 """
 print all objects in bucket bkt1

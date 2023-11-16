@@ -3,7 +3,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
-import { extractFiletypeIcon } from "../utils/extract-filetype";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const style = {

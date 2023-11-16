@@ -33,7 +33,7 @@ import ViewCarouselIcon from "@mui/icons-material/ViewCarousel";
 import axios from "axios";
 import { Modal } from "@mui/material";
 import TextField from "@mui/material/TextField";
-import ThumbnailView from "./thumbNailView";
+import ThumbnailView from "./ThumbNailView";
 
 function Copyright(props) {
   return (
@@ -114,8 +114,9 @@ const modalBoxStyle = {
   boxShadow: 24,
   p: 4,
 };
+
 export default function Dashboard() {
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
   const [toggleListView, setToggleListView] = React.useState(false);
   const [createFolderModalOpen, setCreateFolderModalOpen] =
     React.useState(false);
@@ -275,7 +276,6 @@ export default function Dashboard() {
                 <Stack spacing={1}>
                   <Typography variant="h4">
                     {
-                      // for each element in display path, create a link
                       displayPath.map((path, index) => {
                         if (path !== "")
                           return (
@@ -361,7 +361,7 @@ export default function Dashboard() {
                         fontSize: "15px",
                       }}
                     >
-                      Create Folder
+                      New Folder
                     </Button>
                     <Modal
                       open={createFolderModalOpen}

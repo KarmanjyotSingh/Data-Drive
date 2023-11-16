@@ -28,15 +28,7 @@ const style = {
 function FilePreview(props) {
   const fetchedData = data(props);
   const [open, setOpen] = useState(true);
-  // useEffect(() => {
-  //     setFetchedData(data(props));
-  //     console.log(fetchedData);
-  //     // setFetchedData(data("test", "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", "pdf"));
-  //     // setFetchedData(data("test", "https://www.shutterstock.com/image-vector/sample-red-square-grunge-stamp-260nw-338250266.jpg", "img"));
-  //     // setFetchedData(data("test", "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4", "video"));
-  //     // setFetchedData(data("test", "https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.mp4", "1223"));
-  // }, []);
-  // setFetchedData();
+
   return (
     <React.Fragment>
       {fetchedData.type === "pdf" ? (

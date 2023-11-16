@@ -3,7 +3,7 @@ import "./App.css";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import Login from "./components/Login.js";
 import Dashboard from "./components/HomeReact.js";
-import ThumbnailView from "./components/thumbNailView";
+import ThumbnailView from "./components/ThumbNailView";
 import React from "react";
 function App() {
   const [currentDirectory, setCurrentDirectory] = React.useState("/");

@@ -1,69 +1,31 @@
 import React from "react";
 import axios from "axios";
+import ls from "local-storage";
 import Button from "@mui/material/Button";
-import { DataGrid, GridColDef, GridApi, GridCellValue } from "@mui/x-data-grid";
+import { red, yellow } from "@mui/material/colors";
+import { DataGrid, GridCloseIcon} from "@mui/x-data-grid";
 import FilePreview from "./FilePreview";
 import {
   extractFiletype,
   extractFiletypeIcon,
 } from "../utils/extract-filetype";
+import {
+  isFolder,
+  previewName,
+  createData,
+} from "../utils/table-utils";
 import DownloadIcon from "@mui/icons-material/Download";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FolderIcon from "@mui/icons-material/Folder";
-import Folder from "@mui/icons-material/Folder";
-import { red, yellow } from "@mui/material/colors";
-import ls from "local-storage";
+import InfoIcon from "@mui/icons-material/Info";
+import "./NewDataTable.css";
 
-function getFileSize(bytes, dp = 1) {
-  const thresholdBytes = 1024;
-  if (Math.abs(bytes) < thresholdBytes) {
-    return bytes + " B";
-  }
-  const units = ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-
-  let u = -1;
-  const r = 10 ** dp;
-
-  do {
-    bytes /= thresholdBytes;
-    ++u;
-  } while (
-    Math.round(Math.abs(bytes) * r) / r >= thresholdBytes &&
-    u < units.length - 1
-  );
-
-  return bytes.toFixed(dp) + " " + units[u];
-}
-
-function isFolder(name) {
-  return name.endsWith("/");
-}
-
-function createData(id, name, size, lastModified, etag, url) {
-  return {
-    id,
-    name: name,
-    size: isFolder(name) ? "-" : getFileSize(size),
-    lastModified,
-    etag,
-    url,
-  };
-}
-
-function previewName(name) {
-  if (isFolder(name)) {
-    let last = name.slice(0, name.length - 1);
-    let arr = last.split("/");
-    return arr[arr.length - 1];
-  } else {
-    let arr = name.split("/");
-    return arr[arr.length - 1];
-  }
-}
 
 export default function DataGridDemo(props) {
   const [rows, setRows] = React.useState([]);
   const [modalOpen, setModalOpen] = React.useState(false);
+  const [metadata, setMetadata] = React.useState("");
+  const [metaDataOpen, setMetaDataOpen] = React.useState(false);
 
   const handleDownloadClick = (props) => {
     const object_name = props.name;
@@ -110,6 +72,13 @@ export default function DataGridDemo(props) {
       });
   };
 
+  const handleInfoClick = (props) => {
+    // open the modal and show the metadata
+    setMetadata(props.metadata);
+    setMetaDataOpen(true);
+    console.log(props.metadata);
+  };
+
   const handleFolderClick = (props) => {
     const folder_name = previewName(props.name);
     const path = props.currentDirectory + folder_name + "/";
@@ -126,7 +95,6 @@ export default function DataGridDemo(props) {
         return (
           <React.Fragment>
             {isFolder(params.api.getCellValue(params.id, "name")) ? (
-              // change color to yellow
               <FolderIcon color="yellow" />
             ) : (
               extractFiletypeIcon(params.api.getCellValue(params.id, "name"))
@@ -161,7 +129,6 @@ export default function DataGridDemo(props) {
       field: "size",
       headerName: "Size",
       width: 150,
-      //  align cell to the right
       headerAlign: "right",
       align: "right",
     },
@@ -181,12 +148,7 @@ export default function DataGridDemo(props) {
       headerAlign: "right",
       renderCell: (params) => {
         const onClick = (e) => {
-          e.stopPropagation(); // don't select this row after clicking
-
-
-          console.log(params);
-
-          // return alert(JSON.stringify(thisRow, null, 4));
+          e.stopPropagation();
         };
 
         return (
@@ -202,6 +164,21 @@ export default function DataGridDemo(props) {
                 )}
               />
             ) : null}
+            {!isFolder(params.api.getCellValue(params.id, "name")) ? (<Button
+              onClick={() =>
+                handleInfoClick({
+                  metadata: params.api.getCellValue(params.id, "metadata"),
+                })
+              }
+              sx={{
+                textTransform: "none",
+                opacity: 1,
+                transition: "opacity 0.2s ease-in-out",
+                width: 10,
+              }}
+            >
+              <InfoIcon />
+            </Button>) : null}
             <Button
               onClick={() =>
                 handleDownloadClick({
@@ -232,6 +209,7 @@ export default function DataGridDemo(props) {
             >
               <DeleteIcon />
             </Button>
+            
           </React.Fragment>
         );
       },
@@ -255,12 +233,13 @@ export default function DataGridDemo(props) {
               object.size,
               object.last_modified,
               object.etag,
+              object.metadata,
               object
             )
           );
           id += 1;
-          console.log(object.object_name);
         });
+        console.log(row);
         setRows(row);
       })
       .catch((error) => {
@@ -269,7 +248,9 @@ export default function DataGridDemo(props) {
   }, [props.currentDirectory]);
 
   return (
-    <div style={{ height: 600, width: "100%", margin: 0 }}>
+    <div 
+      style={{ height: 600, width: "100%", margin: 0, display: "flex", flexDirection: "row" }}
+    >
       <DataGrid
         rows={rows}
         columns={columns}
@@ -289,6 +270,26 @@ export default function DataGridDemo(props) {
             fontSize: 16,
           },
         }}
+      />
+      <div className={`Modal ${metaDataOpen ? "Show" : ""}`}>
+        <h3>Metadata</h3>
+        <button
+          className="Close"
+          onClick={() => setMetaDataOpen(!metaDataOpen)}
+        >
+          <GridCloseIcon />
+        </button>
+        {Object.entries(metadata).map(([key, value]) => (
+          <>
+          <p className="Text">
+            {key} : {value}
+          </p>
+          </>
+        ))}{" "}
+      </div>
+      <div
+        className={`Overlay ${metaDataOpen ? "Show" : ""}`}
+        onClick={() => setMetaDataOpen(!metaDataOpen)}
       />
     </div>
   );
