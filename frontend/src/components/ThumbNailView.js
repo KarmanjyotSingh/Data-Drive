@@ -2,6 +2,7 @@ import * as React from "react";
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
 import Grid from "@mui/material/Unstable_Grid2";
 import axios from "axios";
 import folder from "../Assets/folder_icon.png";
@@ -167,53 +168,68 @@ export default function ThumbnailView(props) {
       });
   }, [props.currentDirectory]);
   return (
-    <Grid
-      style={{ height: 600, width: "100%" }}
-      container
-      spacing={3}
-      onClick={handleClose}
-    >
-      {rows.map((file, index) => (
-        <Grid
-          item
-          xs={1}
-          key={index}
-          onContextMenu={(event) => {
-            handleContextMenu(event);
-          }}
-          onClick={() => {
-            handleFolderClick({
-              name: file.name,
-              url: file.url,
-              currentDirectory: props.currentDirectory,
-              setCurrentDirectory: props.setCurrentDirectory,
-            });
-          }}
-        >
-          <IconMenu
-            sx={{
-              visibility: contextMenu.visible ? "visible" : "hidden",
-              position: "absolute",
-              top: contextMenu.y,
-              left: contextMenu.x,
+    <Stack direction="row" spacing={2} width="100%">
+      <Grid
+        style={{ height: 600, width: "20%" }}
+        container
+        spacing={2}
+        onClick={handleClose}
+        number
+        of
+        columns={3}
+        rowSpacing={1}
+      >
+        {rows.map((file, index) => (
+          <Grid
+            item
+            xs={1}
+            key={index}
+            onContextMenu={(event) => {
+              handleContextMenu(event);
             }}
-          />
-          <img src={getDisplayIconSrc(file.name)} alt={file.name} />
-          {!isFolder(file.name) ? (
-            <FilePreview
-              showIcon={false}
-              open={modalOpen}
-              setOpen={setModalOpen}
-              previewName={previewName(file.name)}
-              fileName="Preview"
-              fileData={file.url}
-              type={extractFiletype(file.name)}
+            onClick={() => {
+              handleFolderClick({
+                name: file.name,
+                url: file.url,
+                currentDirectory: props.currentDirectory,
+                setCurrentDirectory: props.setCurrentDirectory,
+              });
+            }}
+          >
+            <IconMenu
+              sx={{
+                visibility: contextMenu.visible ? "visible" : "hidden",
+                position: "absolute",
+                top: contextMenu.y,
+                left: contextMenu.x,
+              }}
             />
-          ) : (
-            <div>{previewName(file.name)}</div>
-          )}
-        </Grid>
-      ))}
-    </Grid>
+            <img src={getDisplayIconSrc(file.name)} alt={file.name} />
+            {!isFolder(file.name) ? (
+              <FilePreview
+                showIcon={false}
+                open={modalOpen}
+                setOpen={setModalOpen}
+                previewName={previewName(file.name)}
+                fileName="Preview"
+                fileData={file.url}
+                type={extractFiletype(file.name)}
+              />
+            ) : (
+              <div>{previewName(file.name)}</div>
+            )}
+          </Grid>
+        ))}
+      </Grid>
+      <Box style={{ height: 600, width: "80%", backgroundColor: "lightgrey" }}>
+        {/* <FilePreview
+          open={modalOpen}
+          fileName="Preview"
+          showIcon={true}
+          fileData={params.api.getCellValue(params.id, "url")}
+          type={extractFiletype(params.api.getCellValue(params.id, "name"))}
+        /> */}
+      </Box>
+    </Stack>
   );
 }

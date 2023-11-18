@@ -99,14 +99,19 @@ function FilePreview(props) {
           {...props}
           title="File Type Not Supported"
           showIcon={props.showIcon}
+          alignItems="center"
           body={
             <React.Fragment>
               <img
                 src="https://static.thenounproject.com/png/3876328-200.png"
-                alt="123error"
+                alt="Error"
+                style={{
+                  display: "block",
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                }}
               />
-              
-              <p>Please Download the File,<br></br> Preview not available</p>
+              <p>Please Download the File, Preview not available</p>
             </React.Fragment>
           }
         ></BasicModal>

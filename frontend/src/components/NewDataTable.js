@@ -3,23 +3,18 @@ import axios from "axios";
 import ls from "local-storage";
 import Button from "@mui/material/Button";
 import { red, yellow } from "@mui/material/colors";
-import { DataGrid, GridCloseIcon} from "@mui/x-data-grid";
+import { DataGrid, GridCloseIcon } from "@mui/x-data-grid";
 import FilePreview from "./FilePreview";
 import {
   extractFiletype,
   extractFiletypeIcon,
 } from "../utils/extract-filetype";
-import {
-  isFolder,
-  previewName,
-  createData,
-} from "../utils/table-utils";
+import { isFolder, previewName, createData } from "../utils/table-utils";
 import DownloadIcon from "@mui/icons-material/Download";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FolderIcon from "@mui/icons-material/Folder";
 import InfoIcon from "@mui/icons-material/Info";
 import "./NewDataTable.css";
-
 
 export default function DataGridDemo(props) {
   const [rows, setRows] = React.useState([]);
@@ -89,7 +84,8 @@ export default function DataGridDemo(props) {
     {
       field: "name",
       headerName: "File Name",
-      width: 400,
+      flex: 2,
+      minWidth: 200,
       sortable: true,
       renderCell: (params) => {
         return (
@@ -128,14 +124,15 @@ export default function DataGridDemo(props) {
     {
       field: "size",
       headerName: "Size",
-      width: 150,
+      flex: 1,
       headerAlign: "right",
       align: "right",
     },
     {
       field: "lastModified",
       headerName: "Last Modified",
-      width: 400,
+      flex: 2,
+      minWidth: 200,
       headerAlign: "center",
       align: "center",
     },
@@ -143,7 +140,8 @@ export default function DataGridDemo(props) {
       field: "actions",
       headerName: "",
       sortable: false,
-      width: 450,
+      flex: 5,
+      minWidth: 200,
       align: "right",
       headerAlign: "right",
       renderCell: (params) => {
@@ -164,21 +162,23 @@ export default function DataGridDemo(props) {
                 )}
               />
             ) : null}
-            {!isFolder(params.api.getCellValue(params.id, "name")) ? (<Button
-              onClick={() =>
-                handleInfoClick({
-                  metadata: params.api.getCellValue(params.id, "metadata"),
-                })
-              }
-              sx={{
-                textTransform: "none",
-                opacity: 1,
-                transition: "opacity 0.2s ease-in-out",
-                width: 10,
-              }}
-            >
-              <InfoIcon />
-            </Button>) : null}
+            {!isFolder(params.api.getCellValue(params.id, "name")) ? (
+              <Button
+                onClick={() =>
+                  handleInfoClick({
+                    metadata: params.api.getCellValue(params.id, "metadata"),
+                  })
+                }
+                sx={{
+                  textTransform: "none",
+                  opacity: 1,
+                  transition: "opacity 0.2s ease-in-out",
+                  width: 10,
+                }}
+              >
+                <InfoIcon />
+              </Button>
+            ) : null}
             <Button
               onClick={() =>
                 handleDownloadClick({
@@ -207,9 +207,8 @@ export default function DataGridDemo(props) {
                 width: 10,
               }}
             >
-              <DeleteIcon />
+              <DeleteIcon sx={{ color: red[500] }} />
             </Button>
-            
           </React.Fragment>
         );
       },
@@ -248,19 +247,24 @@ export default function DataGridDemo(props) {
   }, [props.currentDirectory]);
 
   return (
-    <div 
-      style={{ height: 600, width: "100%", margin: 0, display: "flex", flexDirection: "row" }}
+    <div
+      style={{
+        height: 600,
+        width: "100%",
+        margin: 0,
+        display: "flex",
+        flexDirection: "row",
+      }}
     >
       <DataGrid
         rows={rows}
         columns={columns}
         isRowSelectable={(params) => false}
-        disableSelectionOnClick = {true}
-        disableColumnSelector = {true}
+        disableSelectionOnClick={true}
+        disableColumnSelector={true}
         disableColumnMenu
         sx={{
-          boxShadow: 2,
-          borderRadius: "20px",
+          border: "none",
           margin: 0,
           "& .MuiDataGrid-cell:hover": {
             color: red[500],
@@ -281,9 +285,9 @@ export default function DataGridDemo(props) {
         </button>
         {Object.entries(metadata).map(([key, value]) => (
           <>
-          <p className="Text">
-            {key} : {value}
-          </p>
+            <p className="Text">
+              {key} : {value}
+            </p>
           </>
         ))}{" "}
       </div>

@@ -210,11 +210,11 @@ export default function Dashboard() {
           position="absolute"
           open={open}
         >
-          <Toolbar
-            sx={{
-              pr: "24px", // keep right padding when drawer closed
-            }}
-          >
+        <Toolbar
+          sx={{
+            pr: "5px", // keep right padding when drawer closed
+          }}
+        >
             <IconButton
               edge="start"
               color="inherit"
@@ -270,7 +270,7 @@ export default function Dashboard() {
           }}
         >
           <Toolbar />
-          <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+          <Container sx={{ mt: 4, mb: 4 }} maxWidth="xxl">
             <Stack spacing={3}>
               <Stack direction="row" justifyContent="space-between" spacing={4}>
                 <Stack spacing={1}>
@@ -398,10 +398,9 @@ export default function Dashboard() {
                   </Stack>
                 </div>
               </Stack>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
+              <Container maxWidth="xxl">
                   <Paper
-                    sx={{ p: 2, display: "flex", flexDirection: "column", borderRadius: "20px", marginRight: "30px"}}
+                    sx={{ p: 2, display: "flex", flexDirection: "column", marginRight: "30px"}}
                   >
                     {toggleListView ? (
                       <DataTable
@@ -415,8 +414,7 @@ export default function Dashboard() {
                       />
                     )}
                   </Paper>
-                </Grid>
-              </Grid>
+              </Container>
               <Copyright sx={{ pt: 4 }} />
             </Stack>
           </Container>
