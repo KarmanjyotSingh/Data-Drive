@@ -216,9 +216,11 @@ export default function DataGridDemo(props) {
   ];
 
   React.useEffect(() => {
+    console.log("hehe",props.currentDirectory,props.currentDirectory.substring(1));
     axios
       .post("http://localhost:5000/list_objects", {
-        bucket_name: ls.get("email"),
+        bucket_name: "datadrive",
+        folder_name: ls.get("email"),
         prefix: props.currentDirectory.substring(1),
       })
       .then((response) => {

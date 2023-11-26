@@ -121,7 +121,7 @@ export default function Dashboard() {
   const [createFolderModalOpen, setCreateFolderModalOpen] =
     React.useState(false);
 
-  const [currentDirectory, setCurrentDirectory] = React.useState("/");
+  const [currentDirectory, setCurrentDirectory] = React.useState("/" + ls.get("email")+"/");
 
   const handleFolderModalOpen = () => {
     setCreateFolderModalOpen(true);
@@ -188,9 +188,7 @@ export default function Dashboard() {
     form.append("folder_name", currentDirectory.substring(1));
     console.log(form);
     axios
-      .post("http://localhost:5000/insert_object",
-        form
-      )
+      .post("http://localhost:5000/insert_object", form)
       .then(function (response) {
         console.log(response.data);
         alert("Upload Successful");
@@ -210,11 +208,11 @@ export default function Dashboard() {
           position="absolute"
           open={open}
         >
-        <Toolbar
-          sx={{
-            pr: "5px", // keep right padding when drawer closed
-          }}
-        >
+          <Toolbar
+            sx={{
+              pr: "5px", // keep right padding when drawer closed
+            }}
+          >
             <IconButton
               edge="start"
               color="inherit"
@@ -275,31 +273,29 @@ export default function Dashboard() {
               <Stack direction="row" justifyContent="space-between" spacing={4}>
                 <Stack spacing={1}>
                   <Typography variant="h4">
-                    {
-                      displayPath.map((path, index) => {
-                        if (path !== "")
-                          return (
-                            <Link
-                              key={index}
-                              href="#"
-                              onClick={(event) => {
-                                event.preventDefault();
-                                setCurrentDirectory(
-                                  "/" +
-                                    displayPath.slice(1, index + 1).join("/")
-                                );
-                              }}
-                            >
-                              {path + "/  "}
-                            </Link>
-                          );
-                      })
-                    }
+                    {displayPath.map((path, index) => {
+                      if (path !== "")
+                        return (
+                          <Link
+                            key={index}
+                            href="#"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              setCurrentDirectory(
+                                "/" + displayPath.slice(1, index + 1).join("/")
+                              );
+                            }}
+                          >
+                            {path + "/  "}
+                          </Link>
+                        );
+                    })}
                   </Typography>
                 </Stack>
-                <div style={{marginRight: "20px"}}> 
+                <div style={{ marginRight: "20px" }}>
                   <Stack alignItems="center" direction="row" spacing={1}>
-                    <Button color="inherit"
+                    <Button
+                      color="inherit"
                       sx={{
                         borderRadius: "10px",
                       }}
@@ -309,7 +305,6 @@ export default function Dashboard() {
                       ) : (
                         <ViewListIcon onClick={toggleView} />
                       )}
-
                     </Button>
                     <input
                       type="file"
@@ -399,21 +394,26 @@ export default function Dashboard() {
                 </div>
               </Stack>
               <Container maxWidth="xxl">
-                  <Paper
-                    sx={{ p: 2, display: "flex", flexDirection: "column", marginRight: "30px"}}
-                  >
-                    {toggleListView ? (
-                      <DataTable
-                        setCurrentDirectory={setCurrentDirectory}
-                        currentDirectory={currentDirectory}
-                      />
-                    ) : (
-                      <ThumbnailView
-                        setCurrentDirectory={setCurrentDirectory}
-                        currentDirectory={currentDirectory}
-                      />
-                    )}
-                  </Paper>
+                <Paper
+                  sx={{
+                    p: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                    marginRight: "30px",
+                  }}
+                >
+                  {toggleListView ? (
+                    <DataTable
+                      setCurrentDirectory={setCurrentDirectory}
+                      currentDirectory={currentDirectory}
+                    />
+                  ) : (
+                    <ThumbnailView
+                      setCurrentDirectory={setCurrentDirectory}
+                      currentDirectory={currentDirectory}
+                    />
+                  )}
+                </Paper>
               </Container>
               <Copyright sx={{ pt: 4 }} />
             </Stack>

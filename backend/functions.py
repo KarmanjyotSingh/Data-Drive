@@ -6,6 +6,7 @@ import os
 
 
 class Minio_Db:
+    
     def __init__(self):
         """
         Initialize minioClient with an endpoint and access/secret keys.
@@ -34,7 +35,8 @@ class Minio_Db:
             bucket = self.minioClient.bucket_exists(bucket_name)
             if bucket:
                 try:
-                    response = self.minioClient.get_object(bucket_name, object_name)
+                    response = self.minioClient.get_object(
+                        bucket_name, object_name)
                     # read data from response
                     data = response.read()
                 except S3Error as ex:
@@ -44,7 +46,6 @@ class Minio_Db:
                     response.release_conn()
             else:
                 print("Bucket does not exist")
-
         except S3Error as ex:
             print("Not able to get data from minio / ", (ex))
 
@@ -149,12 +150,9 @@ class Minio_Db:
             if bucket:
                 # since minio does not have folder concept, we are creating a dummy object with empty data
                 self.minioClient.put_object(
-                    bucket_name, folder_name + "/", io.BytesIO(b""), 0
-                )
-
+                    bucket_name, folder_name + "/", io.BytesIO(b""), 0)
                 print("Folder created sucessfully")
                 isSuccess = True
-
             else:
                 print("Folder can't be created because Bucket is not available")
 
@@ -198,7 +196,8 @@ class Minio_Db:
         try:
             bucket = self.minioClient.bucket_exists(bucket_name)
             if bucket:
-                url = self.minioClient.presigned_get_object(bucket_name, object_name)
+                url = self.minioClient.presigned_get_object(
+                    bucket_name, object_name)
                 print("Object url fetched sucessfully")
 
             else:
