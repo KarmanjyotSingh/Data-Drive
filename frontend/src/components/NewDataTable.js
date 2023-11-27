@@ -220,7 +220,6 @@ export default function DataGridDemo(props) {
     axios
       .post("http://localhost:5000/list_objects", {
         bucket_name: "datadrive",
-        folder_name: ls.get("email"),
         prefix: props.currentDirectory.substring(1),
       })
       .then((response) => {
