@@ -3,20 +3,23 @@ import {
   FileContextMenu,
   FileList,
   FileNavbar,
-  FileData,
   FileToolbar,
   ChonkyActions,
   FileHelper,
 } from "chonky";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import axios from "axios";
-import ls from "local-storage";
+import ls, { get, set } from "local-storage";
 import { extractFiletype } from "../utils/extract-file-type";
 import DisplayModal from "./Modal";
-
-function isDir(fileName) {
+import Markdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import ReactPlayer from "react-player";
+import { ShareFiles, ShareFilesModal } from "./ShareFileCustomAction";
+export function isDir(fileName) {
   return fileName[fileName.length - 1] === "/";
 }
+
 function getPreviewName(name) {
   if (isDir(name)) {
     let last = name.slice(0, name.length - 1);
@@ -29,6 +32,7 @@ function getPreviewName(name) {
 }
 
 function getFileArrayObject(fileData) {
+  // console.log(fileData.object_name);
   const data = {
     id: fileData.object_name,
     name: getPreviewName(fileData.object_name),
@@ -37,28 +41,58 @@ function getFileArrayObject(fileData) {
     size: fileData.size,
     modDate: fileData.last_modified,
     metadata: fileData.metadata,
-    parentId: "",
+    parentId: "null",
+  };
+  return data;
+}
+function getParentId(id) {
+  const str = id;
+  let components = str.split("/");
+  components.pop();
+  components.pop();
+  let result = components.join("/");
+  if (result) result += "/";
+  return result;
+}
+function createFolderDataObject(id, name, parentId) {
+  const data = {
+    id: id,
+    name: name,
+    isDir: true,
+    parentId: getParentId(id),
     childrenIds: [],
+    openable: true,
   };
   return data;
 }
 
 export const MyFileBrowser = () => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [openShareFileModal, setOpenShareFileModal] = useState(false);
+  const [sharedFileData, setSharedFileData] = useState({});
   const [modalBody, setModalBody] = useState("");
-
-  const [rootFolderId, setRootFolderId] = useState("");
+  const [rootFolderId, setRootFolderId] = useState("user1/");
   const [fileArray, setFileArray] = useState([]);
-  const [folderChain, setFolderChain] = useState([
-    { name: getPreviewName(rootFolderId), id: rootFolderId },
-  ]);
-  // the path of the current folder
+  const [fileMap, setFileMap] = useState({
+    "user1/": createFolderDataObject("user1/", "user1", null),
+  });
   const [currentFolderId, setCurrentFolderId] = useState(rootFolderId);
+  const currentFolderIdRef = useRef(currentFolderId);
+  const [folderChain, setFolderChain] = useState([
+    createFolderDataObject("user1/", "user1", null),
+  ]);
+  const fileMapRef = useRef(fileMap);
 
-  // use effects for fetching data, and setting state variables
   useEffect(() => {
-    setRootFolderId("/" + ls.get("username"));
-  }, []);
+    fileMapRef.current = fileMap;
+    // console.log("##################");
+    // for (let key in fileMapRef.current) {
+    //   console.log(key, fileMapRef.current[key]);
+    // }
+  }, [fileMap]);
+
+  /* USE EFFECTS */
+  // GET OBJECTS //
   useEffect(() => {
     axios
       .post("http://localhost:5000/list_objects", {
@@ -67,10 +101,10 @@ export const MyFileBrowser = () => {
       })
       .then((response) => {
         console.log(response.data);
-        // setFileArray(response.data);
         let tempFileArray = [];
         response.data.objects.forEach((fileData) => {
-          tempFileArray.push(getFileArrayObject(fileData));
+          const data = getFileArrayObject(fileData);
+          tempFileArray.push(data);
         });
         setFileArray(tempFileArray);
       })
@@ -78,15 +112,62 @@ export const MyFileBrowser = () => {
         console.log(error);
       });
   }, [currentFolderId]);
+  // FOLDER MAP //
+  useEffect(() => {
+    const newFileMap = {};
+    fileArray.forEach((file) => {
+      if (file.isDir) {
+        const folderData = createFolderDataObject(
+          file.id,
+          file.name,
+          currentFolderIdRef.current
+        );
+        newFileMap[file.id] = folderData;
+      }
+    });
+    setFileMap((fileMap) => ({ ...fileMap, ...newFileMap }));
+    // console.log("FOLDER MAPPP : ");
+    // for (let key in fileMap) {
+    //   console.log(key, fileMap[key]);
+    // }
+  }, [fileArray]);
+
+  useEffect(() => {
+    currentFolderIdRef.current = currentFolderId;
+  }, [currentFolderId]);
+  // FOLDER CHAIN AND SET CURRENT FOLDER REFERENCE
+  useEffect(() => {
+    const currentFolder = fileMap[currentFolderIdRef.current];
+    if (currentFolder) {
+      const newFolderChain = [currentFolder];
+      let parentId = currentFolder.parentId;
+      console.log("parent id: ", parentId);
+      while (parentId) {
+        const parentFolder = fileMap[parentId];
+        console.log("current folder:  ", parentId);
+        if (parentFolder) {
+          newFolderChain.unshift(parentFolder);
+          parentId = parentFolder.parentId;
+        } else {
+          console.log("parent folder not found");
+          break;
+        }
+      }
+      setFolderChain(newFolderChain);
+      console.log("new folder chain: ", newFolderChain);
+    }
+  }, [fileMap]);
 
   // chonky action center
   // defines and manages the action handler for files
+
   const fileActions = useMemo(
     () => [
       ChonkyActions.CreateFolder,
       ChonkyActions.DeleteFiles,
       ChonkyActions.UploadFiles,
       ChonkyActions.DownloadFiles,
+      ShareFiles,
     ],
     []
   );
@@ -94,23 +175,24 @@ export const MyFileBrowser = () => {
     (file) => (file.thumbnailUrl ? file.thumbnailUrl : null),
     []
   );
-  // helper functions
-  function handleChangeDirectory(folderId) {}
   // creates a new folder in the current directory
-  function createFolder(folderName) {
-    axios
-      .post("http://localhost:5000/create_folder", {
-        bucket_name: "redflags",
-        folder_name: currentFolderId + folderName,
-      })
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-    setCurrentFolderId(currentFolderId + folderName);
-  }
+  const createFolder = useCallback(
+    (folderName) => {
+      axios
+        .post("http://localhost:5000/create_folder", {
+          bucket_name: "redflags",
+          folder_name: currentFolderIdRef.current + folderName,
+        })
+        .then((response) => {
+          console.log("crrrreeeatee ", currentFolderIdRef.current);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      setCurrentFolderId(currentFolderIdRef.current);
+    },
+    [currentFolderIdRef]
+  );
   // handle file preview
   function handleFilePreview(fileToOpen) {
     const type = extractFiletype(fileToOpen.name);
@@ -121,29 +203,65 @@ export const MyFileBrowser = () => {
     } else if (type === "pdf") {
       // open in a new tab thumbnailUrl
       window.open(fileToOpen.thumbnailUrl, "_blank");
+    } else if (type === "markdown") {
+      let markdown;
+      fetch(fileToOpen.thumbnailUrl).then(function (response) {
+        response.text().then(function (text) {
+          markdown = text;
+          // console.log(markdown);
+          const markdownBody = (
+            <Markdown
+              rehypePlugins={[rehypeRaw]}
+              style={{
+                overflowY: "auto",
+                margin: "0 20px",
+              }}
+            >
+              {markdown}
+            </Markdown>
+          );
+          setModalBody(markdownBody);
+          setModalOpen(true);
+        });
+      });
+    } else if (type === "video") {
+      const video = (
+        <ReactPlayer
+          url={fileToOpen.thumbnailUrl}
+          controls={true}
+          width="100%"
+          style={{
+            margin: "0 20px",
+            overflowY: "hidden",
+            overflowX: "hidden",
+            maxWidth: "100%",
+            maxHeight: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          height="100%"
+        />
+      );
+      setModalBody(video);
+      setModalOpen(true);
+    } else if (type === "audio") {
     }
   }
+
   // chonky action mapper
   const useFileActionHandler = () => {
     return useCallback((data) => {
+      // console.log("Action triggered: ", data);
+      // console.log("Action payload: ", ShareFiles.id);
       // open folder/file
       if (data.id === ChonkyActions.OpenFiles.id) {
         const { targetFile, files } = data.payload;
         const fileToOpen = targetFile ? targetFile : files[0];
         // handle folder click
-        console.log("Opening file/folder: ", fileToOpen);
+        // console.log("Opening file/folder: ", fileToOpen);
         if (fileToOpen && FileHelper.isDirectory(fileToOpen)) {
           setCurrentFolderId(fileToOpen.id);
-          let tempFolderChain = [];
-          folderChain.forEach((folder) => {
-            tempFolderChain.push(folder);
-          });
-          tempFolderChain.push({
-            name: getPreviewName(fileToOpen.id),
-            id: fileToOpen.id,
-          });
-          console.log(tempFolderChain);
-          setFolderChain(tempFolderChain);
           return;
         }
         // handle file click
@@ -155,31 +273,47 @@ export const MyFileBrowser = () => {
       } else if (data.id === ChonkyActions.CreateFolder.id) {
         const folderName = prompt("Provide the name for your new folder:");
         if (folderName) createFolder(folderName);
+      } else if (data.id === ShareFiles.id) {
+        // share file action
+        const fileToShare = data.state.selectedFiles[0];
+        setOpenShareFileModal(true);
+        setSharedFileData(fileToShare);
       }
     }, []);
   };
 
   return (
-    <div style={{ height: "100vh" }}>
-      <FileBrowser
-        folderChain={folderChain}
-        files={fileArray}
-        thumbnailGenerator={thumbnailGenerator}
-        fileActions={fileActions}
-        onFileAction={useFileActionHandler()}
-      >
-        {modalOpen ? (
-          <DisplayModal
-            open={modalOpen}
-            setOpen={setModalOpen}
-            body={modalBody}
-          />
-        ) : null}
-        <FileNavbar />
-        <FileToolbar />
-        <FileList />
-        <FileContextMenu />
-      </FileBrowser>
-    </div>
+    <>
+      {modalOpen ? (
+        <DisplayModal
+          open={modalOpen}
+          setOpen={setModalOpen}
+          body={modalBody}
+        />
+      ) : null}
+      {openShareFileModal ? (
+        <ShareFilesModal
+          open={openShareFileModal}
+          setOpen={setOpenShareFileModal}
+          sharedFile={sharedFileData}
+          setSharedFile={setSharedFileData}
+        />
+      ) : null}
+      <div style={{ height: "100vh" }}>
+        <FileBrowser
+          folderChain={folderChain}
+          files={fileArray}
+          thumbnailGenerator={thumbnailGenerator}
+          fileActions={fileActions}
+          // disableDefaultFileActions={true}
+          onFileAction={useFileActionHandler()}
+        >
+          <FileNavbar />
+          <FileToolbar />
+          <FileList />
+          <FileContextMenu />
+        </FileBrowser>
+      </div>
+    </>
   );
 };
