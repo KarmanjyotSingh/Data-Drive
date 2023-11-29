@@ -27,6 +27,7 @@ const filetypes = {
   pptx: "doc",
   txt: "doc",
   csv: "doc",
+  md: "markdown",
   zip: "zip",
   rar: "zip",
   tar: "zip",
