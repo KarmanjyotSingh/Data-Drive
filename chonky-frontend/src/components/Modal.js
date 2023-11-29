@@ -9,7 +9,7 @@ const style = (theme) => ({
   top: "50%",
   left: "50%",
   display: "flex",
-  height: "100vh",
+  height: "90vh",
   width: "60%",
   flexDirection: "column",
   alignItems: "center",
@@ -25,10 +25,10 @@ const DisplayModal = (props) => {
   const theme = useTheme();
   const themedStyle = style(theme);
   const handleClose = () => {
-    setOpen(false)
-    props.setOpen(false)
-    setBody("")
-};
+    setOpen(false);
+    props.setOpen(false);
+    setBody("");
+  };
   return (
     <Box sx={themedStyle}>
       <Modal
@@ -40,7 +40,12 @@ const DisplayModal = (props) => {
         <Box sx={style}>
           <Typography
             id="modal-modal-description"
-            sx={{ mt: 2, overflow: "auto" }}
+            sx={{
+              mt: 2,
+              overflow: "auto",
+              maxWidth: "100%",
+              maxHeight: "100%",
+            }}
           >
             {body}
           </Typography>
