@@ -9,13 +9,14 @@ import {
 } from "chonky";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import axios from "axios";
-import ls, { get, set } from "local-storage";
 import { extractFiletype } from "../utils/extract-file-type";
 import DisplayModal from "./Modal";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import { Box } from "@mui/material";
 import ReactPlayer from "react-player";
 import { ShareFiles, ShareFilesModal } from "./ShareFileCustomAction";
+
 export function isDir(fileName) {
   return fileName[fileName.length - 1] === "/";
 }
@@ -66,7 +67,7 @@ function createFolderDataObject(id, name, parentId) {
   return data;
 }
 
-export const MyFileBrowser = () => {
+export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [openShareFileModal, setOpenShareFileModal] = useState(false);
   const [sharedFileData, setSharedFileData] = useState({});
@@ -252,9 +253,7 @@ export const MyFileBrowser = () => {
   // chonky action mapper
   const useFileActionHandler = () => {
     return useCallback((data) => {
-      // console.log("Action triggered: ", data);
-      // console.log("Action payload: ", ShareFiles.id);
-      // open folder/file
+      // OPEN FILE/FOLDER
       if (data.id === ChonkyActions.OpenFiles.id) {
         const { targetFile, files } = data.payload;
         const fileToOpen = targetFile ? targetFile : files[0];
@@ -278,6 +277,21 @@ export const MyFileBrowser = () => {
         const fileToShare = data.state.selectedFiles[0];
         setOpenShareFileModal(true);
         setSharedFileData(fileToShare);
+      } else if (data.id === ChonkyActions.ChangeSelection) {
+        console.log("change selection", data.payload.selectedFiles);
+        if (data.payload.selectedFiles.length === 0) {
+          setShowMetaData(false);
+          setMetaFileData({});
+        }
+      } else if (
+        data.id === ChonkyActions.MouseClickFile.id &&
+        data.payload.clickType === "single"
+      ) {
+        if (!data.payload.file.isDir) {
+          const file = data.payload.file;
+          setMetaFileData(file);
+          setShowMetaData(true);
+        }
       }
     }, []);
   };
@@ -299,21 +313,24 @@ export const MyFileBrowser = () => {
           setSharedFile={setSharedFileData}
         />
       ) : null}
-      <div style={{ height: "100vh" }}>
-        <FileBrowser
-          folderChain={folderChain}
-          files={fileArray}
-          thumbnailGenerator={thumbnailGenerator}
-          fileActions={fileActions}
-          // disableDefaultFileActions={true}
-          onFileAction={useFileActionHandler()}
-        >
-          <FileNavbar />
-          <FileToolbar />
-          <FileList />
-          <FileContextMenu />
-        </FileBrowser>
-      </div>
+
+      <Box sx={{ display: "flex", height: "92vh" }}>
+        <Box sx={{ flexGrow: 1 }}>
+          <FileBrowser
+            folderChain={folderChain}
+            files={fileArray}
+            thumbnailGenerator={thumbnailGenerator}
+            fileActions={fileActions}
+            // disableDefaultFileActions={true}
+            onFileAction={useFileActionHandler()}
+          >
+            <FileNavbar />
+            <FileToolbar />
+            <FileList />
+            <FileContextMenu />
+          </FileBrowser>
+        </Box>
+      </Box>
     </>
   );
 };

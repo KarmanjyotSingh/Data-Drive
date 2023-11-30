@@ -1,12 +1,14 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import { setChonkyDefaults } from 'chonky';
-import { ChonkyIconFA } from 'chonky-icon-fontawesome';
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
+import { setChonkyDefaults } from "chonky";
+import { ChonkyIconFA } from "chonky-icon-fontawesome";
+import { MyFileBrowser } from "./components/FileBrowser";
+import SideBar from "./components/SideBar";
+import { Box } from "@mui/material";
+const root = ReactDOM.createRoot(document.getElementById("root"));
 setChonkyDefaults({ iconComponent: ChonkyIconFA });
 
 root.render(

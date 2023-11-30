@@ -1,39 +1,48 @@
-import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import { MyFileBrowser } from "./components/FileBrowser";
-import React from "react";
+import React, { useState } from "react";
+import { Box } from "@mui/material";
+import SideBar from "./components/SideBar";
+import MetaDataPane from "./components/MetaData";
 function App() {
-  const [value, setValue] = React.useState(0);
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
+  const [collapsed, setCollapsed] = React.useState(false);
+  const [tab, setTab] = React.useState("myfiles");
+  const [metaFileData, setMetaFileData] = useState({});
+  const [showMetaData, setShowMetaData] = useState(false);
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static" color="default">
-        <Tabs
-          value={value}
-          onChange={handleChange}
-          textColor="primary"
-          variant="fullWidth"
-          sx={{
-            ".MuiTabs-flexContainer": {
-              justifyContent: "flex-start",
-            },
-            ".MuiTab-root": {
-              fontSize: "0.875rem",
-            },
-            ".MuiTabs-indicator": {
-              backgroundColor: "black",
-            },
+    <Box>
+      <Box sx={{ display: "flex", flexGrow: 1 }}>
+        <Box>
+          <SideBar
+            collapsed={collapsed}
+            setCollapsed={setCollapsed}
+            setTab={setTab}
+          />
+        </Box>
+        <Box
+          sx={{ flexGrow: 1 }}
+          onClick={() => {
+            setShowMetaData(false);
+            console.log("clicked");
           }}
         >
-          <Tab label="My Files" />
-          <Tab label="Shared Files" />
-        </Tabs>
-      </AppBar>
-      {value === 0 && <MyFileBrowser />}
-      {/* value === 1 && <SharedFiles /> */}
+          {tab === "myfiles" ? (
+            <MyFileBrowser
+              setMetaFileData={setMetaFileData}
+              setShowMetaData={setShowMetaData}
+            />
+          ) : (
+            <div>Shared Files</div>
+          )}
+        </Box>
+
+        <Box>
+          <MetaDataPane
+            showMetaData={showMetaData}
+            setShowMetaData={setShowMetaData}
+            metaFileData={metaFileData}
+          />
+        </Box>
+      </Box>
     </Box>
   );
 }
