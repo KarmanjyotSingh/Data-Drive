@@ -42,6 +42,7 @@ const icons = {
   pdf: <PictureAsPdfIcon />,
   doc: <DescriptionIcon />,
   zip: <FolderZipIcon />,
+  markdown: <DescriptionIcon />,
   default: <InsertDriveFileIcon />,
 };
 
