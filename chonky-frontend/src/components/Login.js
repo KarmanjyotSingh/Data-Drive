@@ -1,0 +1,99 @@
+import React, { useState } from "react";
+import { Card, Typography, Button } from "@mui/material";
+import { Grid, TextField } from "@mui/material";
+import CardContent from "@mui/material/CardContent";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import {jwtDecode} from 'jwt-decode';
+function Login({ setToken }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const handleLogin = (e) => {
+    e.preventDefault();
+    axios
+      .post("http://localhost:5000/login", {
+        email: username,
+        password: password,
+      })
+      .then((res) => {
+        console.log(res);
+        if (res.data.status === 1) {
+          setToken(res.data.access_token);
+          // console.log(jwtDecode(res.data.access_token));
+          navigate("/");
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  return (
+    <Grid
+      container
+      justifyContent="right"
+      alignItems="center"
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#f5f5f5",
+      }}
+    >
+      <Grid item xs={12} sm={6} md={4}>
+        <Card
+          sx={{
+            maxWidth: 445,
+            padding: 3,
+            boxShadow: "0 3px 5px 2px rgba(0, 0, 0, .3)",
+          }}
+        >
+          <CardContent>
+            <Typography gutterBottom variant="h5" component="div">
+              Login
+            </Typography>
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              id="username"
+              label="Username"
+              name="username"
+              autoComplete="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoFocus
+              sx={{ marginBottom: 2 }}
+            />
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              sx={{ marginBottom: 2 }}
+              autoComplete="current-password"
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              sx={{ mt: 3, mb: 2 }}
+              onClick={handleLogin}
+            >
+              Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
+}
+
+export default Login;

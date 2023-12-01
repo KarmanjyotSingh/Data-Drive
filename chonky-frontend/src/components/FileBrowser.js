@@ -16,7 +16,7 @@ import rehypeRaw from "rehype-raw";
 import { Box } from "@mui/material";
 import ReactPlayer from "react-player";
 import { ShareFiles, ShareFilesModal } from "./ShareFileCustomAction";
-
+import { jwtDecode } from "jwt-decode";
 export function isDir(fileName) {
   return fileName[fileName.length - 1] === "/";
 }
@@ -72,35 +72,55 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
   const [openShareFileModal, setOpenShareFileModal] = useState(false);
   const [sharedFileData, setSharedFileData] = useState({});
   const [modalBody, setModalBody] = useState("");
-  const [rootFolderId, setRootFolderId] = useState("user1/");
+  const [bucketName, setBucketName] = useState("");
+  const bucketNameRef = useRef(bucketName);
+  const [rootFolderId, setRootFolderId] = useState("");
   const [fileArray, setFileArray] = useState([]);
-  const [fileMap, setFileMap] = useState({
-    "user1/": createFolderDataObject("user1/", "user1", null),
-  });
+  const [fileMap, setFileMap] = useState({});
   const [currentFolderId, setCurrentFolderId] = useState(rootFolderId);
   const currentFolderIdRef = useRef(currentFolderId);
-  const [folderChain, setFolderChain] = useState([
-    createFolderDataObject("user1/", "user1", null),
-  ]);
+  const [folderChain, setFolderChain] = useState([]);
   const fileMapRef = useRef(fileMap);
-
+  const inputFile = useRef(null);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const data = jwtDecode(token).sub;
+    const name = data["username"];
+    const rootfolderId = data["username"] + "/";
+    const bucket_name = data["bucket_name"];
+    setBucketName(bucket_name);
+    setRootFolderId(rootfolderId);
+    setCurrentFolderId(rootfolderId);
+    setFileMap({
+      [rootfolderId]: createFolderDataObject(rootfolderId, name, null),
+    });
+    setFolderChain([createFolderDataObject(rootfolderId, name, null)]);
+  }, []);
+  useEffect(() => {
+    bucketNameRef.current = bucketName;
+  }, [bucketName]);
   useEffect(() => {
     fileMapRef.current = fileMap;
-    // console.log("##################");
-    // for (let key in fileMapRef.current) {
-    //   console.log(key, fileMapRef.current[key]);
-    // }
+    console.log("------------- file map 1 ------------");
+    for (let key in fileMap) {
+      console.log(key, fileMap[key]);
+    }
+    console.log("------------- file map 2 ------------");
   }, [fileMap]);
-
+  useEffect(() => {
+    currentFolderIdRef.current = currentFolderId;
+  }, [currentFolderId]);
   /* USE EFFECTS */
   // GET OBJECTS //
   useEffect(() => {
+    if (currentFolderId === "") return;
     axios
       .post("http://localhost:5000/list_objects", {
-        bucket_name: "redflags",
+        bucket_name: bucketNameRef.current,
         prefix: currentFolderId,
       })
       .then((response) => {
+        console.log("current folder id: ", currentFolderId);
         console.log(response.data);
         let tempFileArray = [];
         response.data.objects.forEach((fileData) => {
@@ -127,15 +147,7 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
       }
     });
     setFileMap((fileMap) => ({ ...fileMap, ...newFileMap }));
-    // console.log("FOLDER MAPPP : ");
-    // for (let key in fileMap) {
-    //   console.log(key, fileMap[key]);
-    // }
   }, [fileArray]);
-
-  useEffect(() => {
-    currentFolderIdRef.current = currentFolderId;
-  }, [currentFolderId]);
   // FOLDER CHAIN AND SET CURRENT FOLDER REFERENCE
   useEffect(() => {
     const currentFolder = fileMap[currentFolderIdRef.current];
@@ -195,6 +207,7 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
     [currentFolderIdRef]
   );
   // handle file preview
+
   function handleFilePreview(fileToOpen) {
     const type = extractFiletype(fileToOpen.name);
     if (type === "image") {
@@ -250,6 +263,47 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
     }
   }
 
+  function handleFileDownload(fileToDownload) {
+    axios
+      .post("http://localhost:5000/get_downloadURL", {
+        bucket_name: "redflags",
+        object_name: fileToDownload.id,
+      })
+      .then((response) => {
+        const link = document.createElement("a");
+        link.href = response.data.url;
+        link.target = "_blank";
+        document.body.appendChild(link);
+
+        link.click();
+        document.body.removeChild(link);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  const handleFileUpload = (e) => {
+    let object = e.target.files[0];
+    const form = new FormData();
+    form.append("file", object);
+    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const bucket_name = data["bucket_name"];
+    form.append("folder_name", currentFolderId);
+    form.append("bucket_name", bucket_name);
+    console.log(form);
+    axios
+      .post("http://localhost:5000/insert_object", form)
+      .then(function (response) {
+        console.log(response.data);
+        alert("Upload Successful");
+      })
+      .catch(function (error) {
+        console.log(error);
+        alert("Upload Failed");
+      });
+  };
+
   // chonky action mapper
   const useFileActionHandler = () => {
     return useCallback((data) => {
@@ -277,12 +331,14 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
         const fileToShare = data.state.selectedFiles[0];
         setOpenShareFileModal(true);
         setSharedFileData(fileToShare);
-      } else if (data.id === ChonkyActions.ChangeSelection) {
-        console.log("change selection", data.payload.selectedFiles);
-        if (data.payload.selectedFiles.length === 0) {
-          setShowMetaData(false);
-          setMetaFileData({});
-        }
+      } else if (data.id === ChonkyActions.DownloadFiles.id) {
+        console.log("download file", data);
+        const fileToDownload = data.state.selectedFiles[0];
+        console.log(fileToDownload);
+        handleFileDownload(fileToDownload);
+      } else if (data.id === ChonkyActions.UploadFiles.id) {
+        console.log("upload file", data);
+        inputFile.current.click();
       } else if (
         data.id === ChonkyActions.MouseClickFile.id &&
         data.payload.clickType === "single"
@@ -315,6 +371,13 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
       ) : null}
 
       <Box sx={{ display: "flex", height: "92vh" }}>
+        <input
+          type="file"
+          id="file"
+          ref={inputFile}
+          onChange={handleFileUpload}
+          style={{ display: "none" }}
+        />
         <Box sx={{ flexGrow: 1 }}>
           <FileBrowser
             folderChain={folderChain}

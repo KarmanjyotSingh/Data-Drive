@@ -61,6 +61,8 @@ def register():
         return jsonify({"status": "0", "message": "Internal server error"}), 500
 
 # Create a new bucket
+
+
 @app.route("/create_bucket", methods=["POST"])
 def create_bucket():
     bucket_name = request.json.get("bucket_name")

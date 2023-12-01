@@ -51,8 +51,8 @@ class SQL_Db:
         """
         try:
             with self.conn.cursor() as cursor:
-                sql = "SELECT * FROM Users WHERE user_id = %s AND pass = %s"
-                cursor.execute(sql, (user_id, password))
+                sql = "SELECT * FROM Users WHERE user_id = %s"
+                cursor.execute(sql, (user_id))
                 result = cursor.fetchone()
                 if check_password_hash(result["pass"], password):
                     return 1
