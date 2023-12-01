@@ -53,16 +53,18 @@ def register():
         if sql_client.check_user(email):
             return jsonify({"status": "0", "message": "User already exists"}), 400
         # Add user to database
-        sql_client.add_user(email, hashed_password,
+        ret = sql_client.add_user(email, hashed_password,
                             bucket_name=request_data["bucket_name"])
-        return jsonify({"status": "1", "message": "User added successfully"}), 200
+        if ret == 1:
+            return jsonify({"status": "1", "message": "User created successfully"}), 201
+        else:
+            return jsonify({"status": "0", "message": "User creation failed"}), 400
     except Exception as e:
         print("Error in register: ", e)
-        return jsonify({"status": "0", "message": "Internal server error"}), 500
+        return jsonify({"status": "0", "message": "User creation failed"}), 400
+
 
 # Create a new bucket
-
-
 @app.route("/create_bucket", methods=["POST"])
 def create_bucket():
     bucket_name = request.json.get("bucket_name")
