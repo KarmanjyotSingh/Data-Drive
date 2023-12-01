@@ -6,12 +6,12 @@ secret_key = "minioadmin"
 secure = False
 
 base_bucket_name = "datadrive"
-sql = {
-    "username": 'redflag',
-    "password": 'redflag',
-    "host": '127.0.0.1',
-    "database": 'DATA_DRIVE'
-}
+
+# SQL Config
+host = "localhost"
+user = "redflag"
+password = "redflag"
+db = "DATA_DRIVE"
 
 PERMISSIONS = {
     'READ', 'WRITE'

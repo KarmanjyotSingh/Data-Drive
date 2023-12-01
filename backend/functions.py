@@ -3,10 +3,10 @@ from minio.error import S3Error
 import config
 import io
 import os
+from functions_sql import SQL_Db
 
 
 class Minio_Db:
-    
     def __init__(self):
         """
         Initialize minioClient with an endpoint and access/secret keys.
@@ -46,6 +46,7 @@ class Minio_Db:
                     response.release_conn()
             else:
                 print("Bucket does not exist")
+
         except S3Error as ex:
             print("Not able to get data from minio / ", (ex))
 
@@ -56,9 +57,11 @@ class Minio_Db:
     ):
         """
         insert object into bucket
+        :param file: file object : file
         :param bucket_name: Container name in Minio : str
-        :param object_name: Name of minio object : str
-        :param toCreateNewBucket: option to create new bucket ("default value: False")
+        :param object_name: name of minio object : str
+        :param toCreateNewBucket: to create new bucket or not : bool
+        :param metadata: metadata of object : dict
         :return: status : True or False
         """
         try:
@@ -69,10 +72,19 @@ class Minio_Db:
                 file_data = open("temp" + file.filename, "rb")
                 file_stat = os.stat("temp" + file.filename)
                 size = file_stat.st_size
+                sql_client = SQL_Db()
+                limit = sql_client.get_storage_limit(object_name.split("/")[0])
+                used = sql_client.get_storage_used(object_name.split("/")[0])
+                if size + used > limit:
+                    print("Storage limit exceeded")
+                    return False
                 self.minioClient.put_object(
                     bucket_name, object_name, file_data, size, metadata=metadata
                 )
                 os.remove("temp" + file.filename)
+                # update size of User table
+                sql_client.update_storage(
+                    object_name.split("/")[0], "add", size)
                 print("Data uploaded")
                 isSuccess = True
 
@@ -98,7 +110,15 @@ class Minio_Db:
             bucket = self.minioClient.bucket_exists(bucket_name)
             isSuccess = False
             if bucket:
+                # get size of object
+                object = self.minioClient.stat_object(bucket_name, object_name)
+                size = object.size
                 self.minioClient.remove_object(bucket_name, object_name)
+                # update size of User table
+                sql_client = SQL_Db()
+                sql_client.update_storage(
+                    object_name.split("/")[0], "remove", size)
+
                 print("Object deleted sucessfully")
                 isSuccess = True
 
@@ -110,9 +130,46 @@ class Minio_Db:
 
         return isSuccess
 
+    def delete_folder(self, bucket_name, object_name):
+        """
+        delete object from bucket
+        :param bucket_name: Container name in Minio : str
+        :param object_name: name of minio object : str
+        :return: status : True or False
+        """
+        try:
+            bucket = self.minioClient.bucket_exists(bucket_name)
+            isSuccess = False
+            if bucket:
+                objects = self.minioClient.list_objects(
+                    bucket_name, prefix=object_name, recursive=True
+                )
+                sql_client = SQL_Db()
+                for obj in objects:
+                    # get size of object
+                    object = self.minioClient.stat_object(
+                        bucket_name, obj.object_name)
+                    size = object.size
+                    self.minioClient.remove_object(
+                        bucket_name, obj.object_name)
+                    # update size of User table
+                    sql_client.update_storage(
+                        obj.object_name.split("/")[0], "remove", size
+                    )
+                print("Folder deleted sucessfully")
+                isSuccess = True
+
+            else:
+                print("Folder can't be deleted because Bucket is not available")
+
+        except S3Error as ex:
+            print("Folder can not be deleted/ ", (ex))
+
+        return isSuccess
+
     def list_objects(self, bucket_name, folder_name=""):
         """
-        fetch all object details from bucket
+        fetch all object details from bucket, non recursive
         :param bucket_name: Container name in Minio : str
         :return: objects : list
         """
@@ -150,9 +207,12 @@ class Minio_Db:
             if bucket:
                 # since minio does not have folder concept, we are creating a dummy object with empty data
                 self.minioClient.put_object(
-                    bucket_name, folder_name + "/", io.BytesIO(b""), 0)
+                    bucket_name, folder_name + "/", io.BytesIO(b""), 0
+                )
+
                 print("Folder created sucessfully")
                 isSuccess = True
+
             else:
                 print("Folder can't be created because Bucket is not available")
 
@@ -240,3 +300,64 @@ class Minio_Db:
             print("Not able to get data from minio / ", (ex))
 
         return metadata
+
+    def change_object_path(self, bucket_name, object_name, new_object_name):
+        """
+        change object path in bucket
+        :param bucket_name: Container name in Minio : str
+        :param object_name: name of minio object : str
+        :param new_object_name: new name of minio object : str
+        :return: status : True or False
+        """
+        try:
+            bucket = self.minioClient.bucket_exists(bucket_name)
+            isSuccess = False
+            if bucket:
+                self.minioClient.copy_object(
+                    bucket_name, new_object_name, bucket_name, object_name
+                )
+                self.minioClient.remove_object(bucket_name, object_name)
+                print("Object path changed sucessfully")
+                isSuccess = True
+
+            else:
+                print("Object path can't be changed because Bucket is not available")
+
+        except S3Error as ex:
+            print("Object path can not be changed/ ", (ex))
+
+        return isSuccess
+
+    def change_folder_path(self, bucket_name, folder_name, new_folder_name):
+        """
+        change folder path in bucket
+        :param bucket_name: Container name in Minio : str
+        :param folder_name: name of folder : str
+        :param new_folder_name: new name of folder : str
+        :return: status : True or False
+        """
+        try:
+            bucket = self.minioClient.bucket_exists(bucket_name)
+            isSuccess = False
+            if bucket:
+                # rename every object in the folder to have the new folder name, and recursively do the same for objects in the subfolders
+                for obj in self.minioClient.list_objects(
+                    bucket_name, prefix=folder_name, recursive=True
+                ):
+                    self.minioClient.copy_object(
+                        bucket_name,
+                        obj.object_name.replace(
+                            folder_name, new_folder_name, 1),
+                        bucket_name,
+                        obj.object_name,
+                    )
+                    self.minioClient.remove_object(
+                        bucket_name, obj.object_name)
+
+            else:
+                print("Folder path can't be changed because Bucket is not available")
+
+        except S3Error as ex:
+            print("Folder path can not be changed/ ", (ex))
+
+        return isSuccess
