@@ -202,5 +202,21 @@ def get_storage():
     return jsonify({"used": used, "limit": limit})
 
 
+# Update storage limit
+@app.route("/update_storage_limit", methods=["POST"])
+def update_storage_limit():
+    user_id = request.json.get("user_id")
+    limit = request.json.get("storage_limit")
+    sql_client = SQL_Db()
+    return jsonify({"status": sql_client.update_storage_limit(user_id, limit)})
+
+
+# Get all users
+@app.route("/get_users", methods=["GET"])
+def get_users():
+    sql_client = SQL_Db()
+    return jsonify({"users": sql_client.get_users_table()})
+
+
 if __name__ == "__main__":
     app.run(debug=True)

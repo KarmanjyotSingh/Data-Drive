@@ -49,7 +49,7 @@ export function ShareFilesModal(props) {
         sender_id: "user1",
         receiver_id: selectedUsers,
         file_name: props.sharedFile.id,
-        bucket_name: "redflags",
+        bucket_name: "datadrive",
         perms: permission === "read" ? "r" : "w",
       })
       .then(function (response) {

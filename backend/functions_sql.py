@@ -190,3 +190,41 @@ class SQL_Db:
         except Exception as e:
             print("Error in get_storage: ", e)
             return 0
+
+    def get_users_table(self):
+        """
+        get all users from the database
+        :return: users : list
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "SELECT user_id, storage_used, storage_limit, bucket_name FROM Users"
+                cursor.execute(sql)
+                result = cursor.fetchall()
+                return result
+        except Exception as e:
+            print("Error in get_users_table: ", e)
+            return None
+        
+    def change_limit(self, user_id, limit):
+        """
+        change the storage_limit of the user to new value that is >= storage_used
+        :param user_id: user id : str
+        :param limit: new limit : int
+        :return: status of the operation : int
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "SELECT storage_used FROM Users WHERE user_id = %s"
+                cursor.execute(sql, (user_id))
+                result = cursor.fetchone()
+                if result["storage_used"] > limit:
+                    return 0
+                else:
+                    sql = "UPDATE Users SET storage_limit = %s WHERE user_id = %s"
+                    cursor.execute(sql, (limit, user_id))
+                    self.conn.commit()
+                    return 1
+        except Exception as e:
+            print("Error in change_limit: ", e)
+            return 0

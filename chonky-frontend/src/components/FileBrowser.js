@@ -12,6 +12,7 @@ import axios from "axios";
 import { extractFiletype } from "../utils/extract-file-type";
 import DisplayModal from "./Modal";
 import Markdown from "react-markdown";
+import { TIFFViewer } from "react-tiff";
 import rehypeRaw from "rehype-raw";
 import { Box } from "@mui/material";
 import ReactPlayer from "react-player";
@@ -193,7 +194,7 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
     (folderName) => {
       axios
         .post("http://localhost:5000/create_folder", {
-          bucket_name: "redflags",
+          bucket_name: "datadrive",
           folder_name: currentFolderIdRef.current + folderName,
         })
         .then((response) => {
@@ -213,6 +214,33 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
     if (type === "image") {
       const image = <img src={fileToOpen.thumbnailUrl} alt={fileToOpen.name} />;
       setModalBody(image);
+      setModalOpen(true);
+    } else if (type === "tiff") {
+      // let tiff;
+      // fetch(fileToOpen.thumbnailUrl)
+      //   .then((response) => response.blob())
+      //   .then((blob) => {
+      //     tiff = blob;
+      //     // console.log(markdown);
+      //     const tiffBody = (
+      //       <TIFFViewer
+      //         tiff={tiff}
+      //         lang="en" // en | de | fr | es | tr
+      //         paginate="bottom" // bottom | ltr
+      //         buttonColor="#141414"
+      //         printable
+      //       />
+      //     );
+      //     setModalBody(tiffBody);
+      //     setModalOpen(true);
+      //   });
+      // const image = <img src={fileToOpen.thumbnailUrl} alt={fileToOpen.name} />;
+      // setModalBody(image);
+      // setModalOpen(true);
+      const tiffBody = (
+        <TIFFViewer tiff={fileToOpen.thumbnailUrl} lang="en" zoomable />
+      );
+      setModalBody(tiffBody);
       setModalOpen(true);
     } else if (type === "pdf") {
       // open in a new tab thumbnailUrl
@@ -266,7 +294,7 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
   function handleFileDownload(fileToDownload) {
     axios
       .post("http://localhost:5000/get_downloadURL", {
-        bucket_name: "redflags",
+        bucket_name: "datadrive",
         object_name: fileToDownload.id,
       })
       .then((response) => {

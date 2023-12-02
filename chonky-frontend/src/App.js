@@ -7,6 +7,7 @@ import SideBar from "./components/SideBar";
 import MetaDataPane from "./components/MetaData";
 import useToken from "./components/useToken";
 import ProtectedRoute from "./utils/ProtectedRoute";
+import AdminPage from "./components/Admin";
 function App() {
   const [collapsed, setCollapsed] = React.useState(false);
   const [tab, setTab] = React.useState("myfiles");
@@ -59,6 +60,16 @@ function App() {
             }
           ></Route>
           <Route path="/login" element={<Login setToken={setToken} />} />
+          <Route
+            path="/admin"
+            element={
+              <Box>
+                <Box sx={{ display: "flex", flexGrow: 1 }}>
+                  <AdminPage />
+                </Box>
+              </Box>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </div>
