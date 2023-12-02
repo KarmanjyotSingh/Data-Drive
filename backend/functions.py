@@ -64,9 +64,9 @@ class Minio_Db:
         :param metadata: metadata of object : dict
         :return: status : True or False
         """
+        isSuccess = False
         try:
             bucket = self.minioClient.bucket_exists(bucket_name)
-            isSuccess = False
             if bucket:
                 file.save("temp" + file.filename)
                 file_data = open("temp" + file.filename, "rb")
@@ -74,7 +74,7 @@ class Minio_Db:
                 size = file_stat.st_size
                 sql_client = SQL_Db()
                 limit = sql_client.get_storage_limit(object_name.split("/")[0])
-                used = sql_client.get_storage_used(object_name.split("/")[0])
+                used = sql_client.get_storage(object_name.split("/")[0])
                 if size + used > limit:
                     print("Storage limit exceeded")
                     return False
@@ -96,7 +96,6 @@ class Minio_Db:
 
         except S3Error as ex:
             print("Not able to insert data into minio/ ", (ex))
-
         return isSuccess
 
     def delete_object(self, bucket_name, object_name):
@@ -106,9 +105,9 @@ class Minio_Db:
         :param object_name: name of minio object : str
         :return: status : True or False
         """
+        isSuccess = False
         try:
             bucket = self.minioClient.bucket_exists(bucket_name)
-            isSuccess = False
             if bucket:
                 # get size of object
                 object = self.minioClient.stat_object(bucket_name, object_name)
@@ -137,9 +136,9 @@ class Minio_Db:
         :param object_name: name of minio object : str
         :return: status : True or False
         """
+        isSuccess = False
         try:
             bucket = self.minioClient.bucket_exists(bucket_name)
-            isSuccess = False
             if bucket:
                 objects = self.minioClient.list_objects(
                     bucket_name, prefix=object_name, recursive=True
@@ -201,9 +200,9 @@ class Minio_Db:
         :param folder_name: name of folder : str
         :return: status : True or False
         """
+        isSuccess = False
         try:
             bucket = self.minioClient.bucket_exists(bucket_name)
-            isSuccess = False
             if bucket:
                 # since minio does not have folder concept, we are creating a dummy object with empty data
                 self.minioClient.put_object(
@@ -309,9 +308,9 @@ class Minio_Db:
         :param new_object_name: new name of minio object : str
         :return: status : True or False
         """
+        isSuccess = False
         try:
             bucket = self.minioClient.bucket_exists(bucket_name)
-            isSuccess = False
             if bucket:
                 self.minioClient.copy_object(
                     bucket_name, new_object_name, bucket_name, object_name
@@ -336,9 +335,9 @@ class Minio_Db:
         :param new_folder_name: new name of folder : str
         :return: status : True or False
         """
+        isSuccess = False
         try:
             bucket = self.minioClient.bucket_exists(bucket_name)
-            isSuccess = False
             if bucket:
                 # rename every object in the folder to have the new folder name, and recursively do the same for objects in the subfolders
                 for obj in self.minioClient.list_objects(
