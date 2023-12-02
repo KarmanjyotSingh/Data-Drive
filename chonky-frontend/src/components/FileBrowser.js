@@ -17,6 +17,7 @@ import { Box } from "@mui/material";
 import ReactPlayer from "react-player";
 import { ShareFiles, ShareFilesModal } from "./ShareFileCustomAction";
 import { jwtDecode } from "jwt-decode";
+
 export function isDir(fileName) {
   return fileName[fileName.length - 1] === "/";
 }
@@ -35,10 +36,10 @@ function getPreviewName(name) {
 function getFileArrayObject(fileData) {
   // console.log(fileData.object_name);
   const data = {
-    id: fileData.object_name,
-    name: getPreviewName(fileData.object_name),
-    isDir: isDir(fileData.object_name),
-    thumbnailUrl: isDir(fileData.object_name) ? "" : fileData.url,
+    id: fileData.file_name,
+    name: getPreviewName(fileData.file_name),
+    isDir: isDir(fileData.file_name),
+    thumbnailUrl: isDir(fileData.file_name) ? "" : fileData.url,
     size: fileData.size,
     modDate: fileData.last_modified,
     metadata: fileData.metadata,
@@ -67,17 +68,24 @@ function createFolderDataObject(id, name, parentId) {
   return data;
 }
 
-export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
+export const MyFileBrowser = ({
+  currentFolderId,
+  setCurrentFolderId,
+  rootFolderId,
+  setRootFolderId,
+  sharedType,
+  setMetaFileData,
+  setShowMetaData,
+}) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [openShareFileModal, setOpenShareFileModal] = useState(false);
   const [sharedFileData, setSharedFileData] = useState({});
   const [modalBody, setModalBody] = useState("");
   const [bucketName, setBucketName] = useState("");
   const bucketNameRef = useRef(bucketName);
-  const [rootFolderId, setRootFolderId] = useState("");
+  const rootFolderIdRef = useRef(rootFolderId);
   const [fileArray, setFileArray] = useState([]);
   const [fileMap, setFileMap] = useState({});
-  const [currentFolderId, setCurrentFolderId] = useState(rootFolderId);
   const currentFolderIdRef = useRef(currentFolderId);
   const [folderChain, setFolderChain] = useState([]);
   const fileMapRef = useRef(fileMap);
@@ -100,12 +108,10 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
     bucketNameRef.current = bucketName;
   }, [bucketName]);
   useEffect(() => {
+    rootFolderIdRef.current = rootFolderId;
+  }, [rootFolderId]);
+  useEffect(() => {
     fileMapRef.current = fileMap;
-    console.log("------------- file map 1 ------------");
-    for (let key in fileMap) {
-      console.log(key, fileMap[key]);
-    }
-    console.log("------------- file map 2 ------------");
   }, [fileMap]);
   useEffect(() => {
     currentFolderIdRef.current = currentFolderId;
@@ -114,25 +120,106 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
   // GET OBJECTS //
   useEffect(() => {
     if (currentFolderId === "") return;
-    axios
-      .post("http://localhost:5000/list_objects", {
-        bucket_name: bucketNameRef.current,
-        prefix: currentFolderId,
-      })
-      .then((response) => {
-        console.log("current folder id: ", currentFolderId);
-        console.log(response.data);
-        let tempFileArray = [];
-        response.data.objects.forEach((fileData) => {
-          const data = getFileArrayObject(fileData);
-          tempFileArray.push(data);
+    else if (currentFolderId === rootFolderIdRef.current) {
+      if (sharedType === "sharedbyme") {
+        const data = jwtDecode(localStorage.getItem("token")).sub;
+        const username = data["username"];
+        axios
+          .post("http://localhost:5000/get_shared_by_self_files", {
+            user_id: username,
+          })
+          .then((response) => {
+            console.log("current folder id: ", currentFolderId);
+            console.log(response.data);
+            let tempFileArray = [];
+            response.data.shared_files.forEach((fileData) => {
+              const data = getFileArrayObject(fileData);
+              tempFileArray.push(data);
+            });
+            setFileArray(tempFileArray);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else if (sharedType === "sharedwithme") {
+        const data = jwtDecode(localStorage.getItem("token")).sub;
+        const username = data["username"];
+        axios
+          .post("http://localhost:5000/get_shared_files", {
+            user_id: username,
+          })
+          .then((response) => {
+            console.log("current folder id: ", currentFolderId);
+            console.log(response.data);
+            let tempFileArray = [];
+            response.data.shared_files.forEach((fileData) => {
+              const data = getFileArrayObject(fileData);
+              tempFileArray.push(data);
+            });
+            setFileArray(tempFileArray);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else {
+        axios
+          .post("http://localhost:5000/list_objects", {
+            bucket_name: bucketNameRef.current,
+            prefix: currentFolderId,
+          })
+          .then((response) => {
+            console.log("current folder id: ", currentFolderId);
+            console.log(response.data);
+            let tempFileArray = [];
+            response.data.objects.forEach((fileData) => {
+              const data = {
+                id: fileData.object_name,
+                name: getPreviewName(fileData.object_name),
+                isDir: isDir(fileData.object_name),
+                thumbnailUrl: isDir(fileData.object_name) ? "" : fileData.url,
+                size: fileData.size,
+                modDate: fileData.last_modified,
+                metadata: fileData.metadata,
+                parentId: "null",
+              };
+              tempFileArray.push(data);
+            });
+            setFileArray(tempFileArray);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    } else {
+      axios
+        .post("http://localhost:5000/list_objects", {
+          bucket_name: bucketNameRef.current,
+          prefix: currentFolderId,
+        })
+        .then((response) => {
+          console.log("current folder id: ", currentFolderId);
+          console.log(response.data);
+          let tempFileArray = [];
+          response.data.objects.forEach((fileData) => {
+            const data = {
+              id: fileData.object_name,
+              name: getPreviewName(fileData.object_name),
+              isDir: isDir(fileData.object_name),
+              thumbnailUrl: isDir(fileData.object_name) ? "" : fileData.url,
+              size: fileData.size,
+              modDate: fileData.last_modified,
+              metadata: fileData.metadata,
+              parentId: "null",
+            };
+            tempFileArray.push(data);
+          });
+          setFileArray(tempFileArray);
+        })
+        .catch((error) => {
+          console.log(error);
         });
-        setFileArray(tempFileArray);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, [currentFolderId]);
+    }
+  }, [currentFolderId, sharedType]);
   // FOLDER MAP //
   useEffect(() => {
     const newFileMap = {};
@@ -347,6 +434,7 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
           const file = data.payload.file;
           setMetaFileData(file);
           setShowMetaData(true);
+          console.log("file clicked: ", file);
         }
       }
     }, []);
@@ -370,7 +458,7 @@ export const MyFileBrowser = ({ setMetaFileData, setShowMetaData }) => {
         />
       ) : null}
 
-      <Box sx={{ display: "flex", height: "92vh" }}>
+      <Box sx={{ display: "flex", height: "100vh" }}>
         <input
           type="file"
           id="file"

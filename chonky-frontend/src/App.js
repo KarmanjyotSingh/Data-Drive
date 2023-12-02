@@ -10,6 +10,8 @@ import ProtectedRoute from "./utils/ProtectedRoute";
 function App() {
   const [collapsed, setCollapsed] = React.useState(false);
   const [tab, setTab] = React.useState("myfiles");
+  const [rootFolderId, setRootFolderId] = React.useState("");
+  const [currentFolderId, setCurrentFolderId] = useState(rootFolderId);
   const [metaFileData, setMetaFileData] = useState({});
   const [showMetaData, setShowMetaData] = useState(false);
   const { token, removeToken, setToken } = useToken();
@@ -25,6 +27,7 @@ function App() {
                   <Box sx={{ display: "flex", flexGrow: 1 }}>
                     <Box>
                       <SideBar
+                        setRootFolderId={setCurrentFolderId}
                         collapsed={collapsed}
                         setCollapsed={setCollapsed}
                         setTab={setTab}
@@ -36,14 +39,15 @@ function App() {
                         setShowMetaData(false);
                       }}
                     >
-                      {tab === "myfiles" ? (
-                        <MyFileBrowser
-                          setMetaFileData={setMetaFileData}
-                          setShowMetaData={setShowMetaData}
-                        />
-                      ) : (
-                        <div>Shared Files</div>
-                      )}
+                      <MyFileBrowser
+                        currentFolderId={currentFolderId}
+                        setCurrentFolderId={setCurrentFolderId}
+                        sharedType={tab}
+                        rootFolderId={rootFolderId}
+                        setRootFolderId={setRootFolderId}
+                        setMetaFileData={setMetaFileData}
+                        setShowMetaData={setShowMetaData}
+                      />
                     </Box>
 
                     <Box>

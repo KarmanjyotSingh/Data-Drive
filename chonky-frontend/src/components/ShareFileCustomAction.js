@@ -10,6 +10,7 @@ import { useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import axios from "axios";
+import {jwtDecode} from "jwt-decode";
 const style = (theme) => ({
   position: "absolute",
   top: "50%",
@@ -32,9 +33,10 @@ export function ShareFilesModal(props) {
   const [permission, setPermission] = useState("");
 
   useEffect(() => {
-    // Fetch the list of users here and update the users state variable
-    // This is just a placeholder, replace it with your actual fetch call
-    setUsers(["User1", "User2", "User3"]);
+    axios.get("http://localhost:5000/get_users").then((response) => {
+      const users = response.data.users.map((user) => user.user_id);
+      setUsers(users);
+    });
   }, []);
 
   const handleClose = () => {
@@ -44,14 +46,19 @@ export function ShareFilesModal(props) {
   };
 
   function handleShare() {
+    console.log(selectedUsers);
+    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const sender = data["username"];
+    const bucket_name = data["bucket_name"];
+    const requestBody = {
+      sender_id: sender,
+      reciever_id: selectedUsers,
+      file_name: props.sharedFile.id,
+      bucket_name: bucket_name,
+      perms: permission === "read" ? "r" : "w",
+    };
     axios
-      .post("http://localhost:5000/add_shared_file", {
-        sender_id: "user1",
-        receiver_id: selectedUsers,
-        file_name: props.sharedFile.id,
-        bucket_name: "redflags",
-        perms: permission === "read" ? "r" : "w",
-      })
+      .post("http://localhost:5000/add_shared_file", requestBody)
       .then(function (response) {
         console.log(response);
         handleClose();
@@ -113,7 +120,7 @@ export function ShareFilesModal(props) {
                 marginTop: "10px",
               }}
               options={users}
-              getOptionLabel={(option) => option}
+              getOptionLabel={(option) => (option ? option : "")}
               value={selectedUsers}
               onChange={(event, newValue) => setSelectedUsers(newValue)}
               renderInput={(params) => (
