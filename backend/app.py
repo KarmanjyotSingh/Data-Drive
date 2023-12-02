@@ -152,8 +152,17 @@ def create_folder():
     client = Minio_Db()
     return jsonify({"status": client.create_folder(bucket_name, folder_name)})
 
+# Get List of Users
+
+
+@app.route("/get_users", methods=["GET"])
+def get_users():
+    sql_client = SQL_Db()
+    return jsonify({"users": sql_client.get_users()})
 
 # Add shared file to database
+
+
 @app.route("/add_shared_file", methods=["POST"])
 def add_shared_file():
     sender_id = request.json.get("sender_id")
@@ -164,7 +173,7 @@ def add_shared_file():
     sql_client = SQL_Db()
     # check if user exists, if does not exist, return 0
     if sql_client.check_user(reciever_id) == 0:
-        return jsonify({"status": 0})
+        return jsonify({"status": 69})
     return jsonify(
         {
             "status": sql_client.add_shared_file(
@@ -179,7 +188,11 @@ def add_shared_file():
 def get_shared_files():
     user_id = request.json.get("user_id")
     sql_client = SQL_Db()
-    return jsonify({"shared_files": sql_client.get_shared_files(user_id)})
+    result = sql_client.get_shared_files(user_id)
+    for file in result:
+        file["url"] = Minio_Db().get_objectURL(
+            file["bucket_name"], file["file_name"])
+    return jsonify({"shared_files": result})
 
 
 # Get shared files from database that the user has shared
@@ -187,7 +200,12 @@ def get_shared_files():
 def get_shared_by_self_files():
     user_id = request.json.get("user_id")
     sql_client = SQL_Db()
-    return jsonify({"shared_files": sql_client.get_shared_by_self_files(user_id)})
+    result = sql_client.get_shared_by_self_files(user_id)
+    
+    for file in result:
+        file["url"] = Minio_Db().get_objectURL(
+            file["bucket_name"], file["file_name"])
+    return jsonify({"shared_files": result})
 
 
 # Get storage used and storage limit

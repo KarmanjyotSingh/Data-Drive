@@ -43,6 +43,21 @@ class SQL_Db:
             print("Error in add_user: ", e)
             return 0
 
+    def get_users(self):
+        """
+        get all users from the database
+        :return: users : list
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "SELECT user_id FROM Users"
+                cursor.execute(sql)
+                result = cursor.fetchall()
+                return result
+        except Exception as e:
+            print("Error in get_users: ", e)
+            return None
+
     def verify_user(self, user_id, password):
         """
         check if a user exists in the database
@@ -58,7 +73,7 @@ class SQL_Db:
                     return 1
                 else:
                     return 0
-               
+
         except Exception as e:
             print("Error in check_user: ", e)
             return 0
@@ -72,7 +87,7 @@ class SQL_Db:
         try:
             with self.conn.cursor() as cursor:
                 sql = "SELECT * FROM Users WHERE user_id = %s"
-                cursor.execute(sql, (user_id))
+                cursor.execute(sql, user_id)
                 result = cursor.fetchone()
                 if result:
                     return 1
