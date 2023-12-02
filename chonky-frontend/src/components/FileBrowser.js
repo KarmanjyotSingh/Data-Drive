@@ -12,7 +12,7 @@ import axios from "axios";
 import { extractFiletype } from "../utils/extract-file-type";
 import DisplayModal from "./Modal";
 import Markdown from "react-markdown";
-import { TIFFViewer } from "react-tiff";
+// import { TIFFViewer } from "react-tiff";
 import rehypeRaw from "rehype-raw";
 import { Box } from "@mui/material";
 import ReactPlayer from "react-player";
@@ -90,7 +90,8 @@ export const MyFileBrowser = ({
   const currentFolderIdRef = useRef(currentFolderId);
   const [folderChain, setFolderChain] = useState([]);
   const fileMapRef = useRef(fileMap);
-  const inputFile = useRef(null);
+  const inputFile = useRef();
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     const data = jwtDecode(token).sub;
@@ -105,6 +106,7 @@ export const MyFileBrowser = ({
     });
     setFolderChain([createFolderDataObject(rootfolderId, name, null)]);
   }, []);
+
   useEffect(() => {
     bucketNameRef.current = bucketName;
   }, [bucketName]);
@@ -261,39 +263,57 @@ export const MyFileBrowser = ({
 
   // chonky action center
   // defines and manages the action handler for files
-
   const fileActions = useMemo(
-    () => [
-      ChonkyActions.CreateFolder,
-      ChonkyActions.DeleteFiles,
-      ChonkyActions.UploadFiles,
-      ChonkyActions.DownloadFiles,
-      ShareFiles,
-    ],
-    []
+    () =>
+      sharedType === "myfiles"
+        ? [
+            ChonkyActions.CreateFolder,
+            ChonkyActions.DeleteFiles,
+            ChonkyActions.DownloadFiles,
+            ChonkyActions.UploadFiles,
+            ShareFiles,
+          ]
+        : [ChonkyActions.DownloadFiles],
+    [sharedType]
   );
   const thumbnailGenerator = useCallback(
     (file) => (file.thumbnailUrl ? file.thumbnailUrl : null),
     []
   );
   // creates a new folder in the current directory
-  const createFolder = useCallback(
-    (folderName) => {
-      axios
-        .post("http://localhost:5000/create_folder", {
-          bucket_name: "datadrive",
-          folder_name: currentFolderIdRef.current + folderName,
-        })
-        .then((response) => {
-          console.log("crrrreeeatee ", currentFolderIdRef.current);
-        })
-        .catch((error) => {
-          console.log(error);
+  const createFolder = (folderName) => {
+    axios
+      .post("http://localhost:5000/create_folder", {
+        bucket_name: "datadrive",
+        folder_name: currentFolderIdRef.current + folderName,
+      })
+      .then((response) => {
+        setFileMap((fileMap) => {
+          const newFileMap = { ...fileMap };
+          newFileMap[currentFolderIdRef.current + folderName + "/"] =
+            createFolderDataObject(
+              currentFolderIdRef.current + folderName + "/",
+              folderName,
+              currentFolderIdRef.current
+            );
+          return newFileMap;
         });
-      setCurrentFolderId(currentFolderIdRef.current);
-    },
-    [currentFolderIdRef]
-  );
+        const data = {
+          id: currentFolderIdRef.current + folderName + "/",
+          name: folderName,
+          isDir: true,
+          thumbnailUrl: "",
+          size: 0,
+          modDate: new Date().toISOString(),
+          metadata: {},
+          parentId: currentFolderIdRef.current,
+        };
+        setFileArray((fileArray) => [...fileArray, data]);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
   // handle file preview
 
   function handleFilePreview(fileToOpen) {
@@ -303,32 +323,11 @@ export const MyFileBrowser = ({
       setModalBody(image);
       setModalOpen(true);
     } else if (type === "tiff") {
-      // let tiff;
-      // fetch(fileToOpen.thumbnailUrl)
-      //   .then((response) => response.blob())
-      //   .then((blob) => {
-      //     tiff = blob;
-      //     // console.log(markdown);
-      //     const tiffBody = (
-      //       <TIFFViewer
-      //         tiff={tiff}
-      //         lang="en" // en | de | fr | es | tr
-      //         paginate="bottom" // bottom | ltr
-      //         buttonColor="#141414"
-      //         printable
-      //       />
-      //     );
-      //     setModalBody(tiffBody);
-      //     setModalOpen(true);
-      //   });
-      // const image = <img src={fileToOpen.thumbnailUrl} alt={fileToOpen.name} />;
-      // setModalBody(image);
+      // const tiffBody = (
+      //   <TIFFViewer tiff={fileToOpen.thumbnailUrl} lang="en" zoomable />
+      // );
+      // setModalBody(tiffBody);
       // setModalOpen(true);
-      const tiffBody = (
-        <TIFFViewer tiff={fileToOpen.thumbnailUrl} lang="en" zoomable />
-      );
-      setModalBody(tiffBody);
-      setModalOpen(true);
     } else if (type === "pdf") {
       // open in a new tab thumbnailUrl
       window.open(fileToOpen.thumbnailUrl, "_blank");
@@ -358,13 +357,12 @@ export const MyFileBrowser = ({
         <ReactPlayer
           url={fileToOpen.thumbnailUrl}
           controls={true}
-          width="100%"
           style={{
             margin: "0 20px",
             overflowY: "hidden",
             overflowX: "hidden",
             maxWidth: "100%",
-            maxHeight: "100%",
+            maxHeight: "90%",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -389,7 +387,6 @@ export const MyFileBrowser = ({
         link.href = response.data.url;
         link.target = "_blank";
         document.body.appendChild(link);
-
         link.click();
         document.body.removeChild(link);
       })
@@ -399,14 +396,20 @@ export const MyFileBrowser = ({
   }
 
   const handleFileUpload = (e) => {
-    let object = e.target.files[0];
+    const files = e.target.files;
+    let file = [];
+    console.log("UPLOADING FILES");
+
     const form = new FormData();
-    form.append("file", object);
+    for (let i = 0; i < files.length; i++) {
+      file.push(files[i]);
+      form.append('files', files[i]);
+    }
+    console.log(form.entries());
     const data = jwtDecode(localStorage.getItem("token")).sub;
     const bucket_name = data["bucket_name"];
     form.append("folder_name", currentFolderId);
     form.append("bucket_name", bucket_name);
-    console.log(form);
     axios
       .post("http://localhost:5000/insert_object", form)
       .then(function (response) {
@@ -419,6 +422,37 @@ export const MyFileBrowser = ({
       });
   };
 
+  function handleFileDelete(fileToDelete) {
+    const object_name = fileToDelete.id;
+    const bucket_name = jwtDecode(localStorage.getItem("token")).sub[
+      "bucket_name"
+    ];
+    const body = {
+      bucket_name: bucket_name,
+      object_name: object_name,
+    };
+    axios
+      .post("http://localhost:5000/delete_object", body)
+      .then((response) => {
+        console.log(response);
+        if (fileToDelete.isDir) {
+          setFileMap((fileMap) => {
+            const newFileMap = { ...fileMap };
+            delete newFileMap[fileToDelete.id];
+            return newFileMap;
+          });
+        }
+        setFileArray((fileArray) => {
+          const newFileArray = fileArray.filter(
+            (file) => file.id !== fileToDelete.id
+          );
+          return newFileArray;
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
   // chonky action mapper
   const useFileActionHandler = () => {
     return useCallback((data) => {
@@ -426,8 +460,6 @@ export const MyFileBrowser = ({
       if (data.id === ChonkyActions.OpenFiles.id) {
         const { targetFile, files } = data.payload;
         const fileToOpen = targetFile ? targetFile : files[0];
-        // handle folder click
-        // console.log("Opening file/folder: ", fileToOpen);
         if (fileToOpen && FileHelper.isDirectory(fileToOpen)) {
           setCurrentFolderId(fileToOpen.id);
           return;
@@ -451,6 +483,8 @@ export const MyFileBrowser = ({
         const fileToDownload = data.state.selectedFiles[0];
         console.log(fileToDownload);
         handleFileDownload(fileToDownload);
+      } else if (data.id === ChonkyActions.DeleteFiles.id) {
+        handleFileDelete(data.state.selectedFiles[0]);
       } else if (data.id === ChonkyActions.UploadFiles.id) {
         console.log("upload file", data);
         inputFile.current.click();
@@ -464,6 +498,8 @@ export const MyFileBrowser = ({
           setShowMetaData(true);
           console.log("file clicked: ", file);
         }
+      } else if (data.id === ChonkyActions.MoveFiles.id) {
+        console.log("drag n drop", data);
       }
     }, []);
   };
@@ -493,6 +529,7 @@ export const MyFileBrowser = ({
           ref={inputFile}
           onChange={handleFileUpload}
           style={{ display: "none" }}
+          multiple
         />
         <Box sx={{ flexGrow: 1 }}>
           <FileBrowser

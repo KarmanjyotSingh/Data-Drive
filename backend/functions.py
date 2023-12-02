@@ -75,12 +75,20 @@ class Minio_Db:
                 sql_client = SQL_Db()
                 limit = sql_client.get_storage_limit(object_name.split("/")[0])
                 used = sql_client.get_storage(object_name.split("/")[0])
+                print("used: ", used)
+                print("limit: ", limit)
+                print("size: ", type(size))
                 if size + used > limit:
                     print("Storage limit exceeded")
                     return False
-                self.minioClient.put_object(
+                
+                data = self.minioClient.put_object(
                     bucket_name, object_name, file_data, size, metadata=metadata
                 )
+                print("~~~~~~~~~~~~~~~")
+                print(data.object_name, " is uploaded to ", data.bucket_name)
+                print(data.location)
+                print("~~~~~~~~~~~~~~~")
                 os.remove("temp" + file.filename)
                 # update size of User table
                 sql_client.update_storage(
@@ -243,6 +251,13 @@ class Minio_Db:
             print("Not able to get data from minio / ", (ex))
 
         return url
+
+    def download_object(self, bucket_name, object_name, file_path):
+        """
+        download the object from the given path, make it a zip file and return the path
+        :param bucket_name: Container name in Minio : str
+        :param object_name: name of minio object : str
+        """
 
     def get_downloadURL(self, bucket_name, object_name):
         """

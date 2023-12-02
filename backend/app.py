@@ -54,7 +54,7 @@ def register():
             return jsonify({"status": "0", "message": "User already exists"}), 400
         # Add user to database
         ret = sql_client.add_user(email, hashed_password,
-                            bucket_name=request_data["bucket_name"])
+                                  bucket_name=request_data["bucket_name"])
         if ret == 1:
             return jsonify({"status": "1", "message": "User created successfully"}), 201
         else:
@@ -100,12 +100,21 @@ def list_objects():
 @app.route("/insert_object", methods=["POST"])
 def insert_object():
     client = Minio_Db()
-    file = request.files["file"]
-    filename = file.filename
+    files = request.files.getlist('files')
     bucket_name = request.form.get("bucket_name")
     path = request.form.get("folder_name")
+    print("-------------------")
+    print("FILES", files)
+    print("BUCKET NAME", bucket_name)
+    print("PATH", path)
+    print("-------------------")
+
     # object_name = object.name
-    return jsonify({"status": client.insert_object(file, bucket_name, path + filename)})
+    status = 0
+    for file in files:
+        status += client.insert_object(file, bucket_name, path+file.filename)
+
+    return jsonify({"status": status})
 
 
 # Delete object from bucket
@@ -154,14 +163,6 @@ def create_folder():
     client = Minio_Db()
     return jsonify({"status": client.create_folder(bucket_name, folder_name)})
 
-# Get List of Users
-
-
-@app.route("/get_users", methods=["GET"])
-def get_users():
-    sql_client = SQL_Db()
-    return jsonify({"users": sql_client.get_users()})
-
 # Add shared file to database
 
 
@@ -203,7 +204,7 @@ def get_shared_by_self_files():
     user_id = request.json.get("user_id")
     sql_client = SQL_Db()
     result = sql_client.get_shared_by_self_files(user_id)
-    
+
     for file in result:
         file["url"] = Minio_Db().get_objectURL(
             file["bucket_name"], file["file_name"])
