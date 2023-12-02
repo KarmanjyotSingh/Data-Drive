@@ -1,4 +1,4 @@
-                   import { Box, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import React from "react";
 import { Sidebar, Menu, MenuItem } from "react-pro-sidebar";
 import CloseIcon from "@mui/icons-material/Close";
@@ -11,7 +11,7 @@ export default function MetaDataPane({
   console.log(metaFileData.metadata);
   return (
     <>
-      {metaFileData.metadata && showMetaData && (
+      {showMetaData && (
         <Sidebar
           collapsed={!showMetaData}
           onToggle={() => setShowMetaData(!showMetaData)}
@@ -21,7 +21,7 @@ export default function MetaDataPane({
             <MenuItem
               suffix={<CloseIcon />}
               onClick={() => setShowMetaData(!showMetaData)}
-              icon = {extractFiletypeIcon(metaFileData.name)}
+              icon={extractFiletypeIcon(metaFileData.name)}
             >
               <div
                 style={{
@@ -31,7 +31,6 @@ export default function MetaDataPane({
                   fontSize: 15,
                   letterSpacing: "1px",
                 }}
-                
               >
                 {metaFileData.name}
               </div>
@@ -59,14 +58,16 @@ export default function MetaDataPane({
               <Typography variant="body1" gutterBottom>
                 Metadata:
               </Typography>
-              <Box sx={{ paddingLeft: 2 }}>
-                {Object.entries(metaFileData.metadata).map(([key, value]) => (
-                  <Box key={key}>
-                    <Typography variant="body1">{key}:</Typography>
-                    <Typography variant="body2">{value}</Typography>
-                  </Box>
-                ))}
-              </Box>
+              {metaFileData.metadata && (
+                <Box sx={{ paddingLeft: 2 }}>
+                  {Object.entries(metaFileData.metadata).map(([key, value]) => (
+                    <Box key={key}>
+                      <Typography variant="body1">{key}:</Typography>
+                      <Typography variant="body2">{value}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
             </Box>
           </Menu>
         </Sidebar>

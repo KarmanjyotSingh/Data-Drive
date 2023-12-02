@@ -1,10 +1,43 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar";
 import HomeIcon from "@mui/icons-material/Home";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 import FolderSharedIcon from "@mui/icons-material/FolderShared";
-export default function SideBar({ collapsed, setCollapsed, setTab }) {
+import { jwtDecode } from "jwt-decode";
+import { LinearProgress } from "@mui/material";
+import { Typography } from "@mui/material";
+import StorageIcon from "@mui/icons-material/Storage";
+import axios from "axios";
+export default function SideBar({
+  setRootFolderId,
+  collapsed,
+  setCollapsed,
+  setTab,
+}) {
+  const [storageUsed, setStorageUsed] = useState(0);
+  const [storageTotal, setStorageTotal] = useState(0);
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    const username = jwtDecode(localStorage.getItem("token")).sub["username"];
+    const request_body = {
+      user_id: username,
+    };
+    axios
+      .post("http://localhost:5000/get_storage", request_body)
+      .then((response) => {
+        setStorageUsed(response.data.used);
+        console.log(response.data);
+        const storageTotalInGB = (response.data.limit / (1024 ** 3)).toFixed(2);
+
+        setStorageTotal(storageTotalInGB);
+        setValue((response.data.used / response.data.limit) * 100);
+        console.log(storageTotalInGB);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
   return (
     <>
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)}>
@@ -38,19 +71,63 @@ export default function SideBar({ collapsed, setCollapsed, setTab }) {
             icon={<HomeIcon />}
             onClick={() => {
               setTab("myfiles");
+              const username =
+                jwtDecode(localStorage.getItem("token")).sub["username"] + "/";
+              console.log(username);
+              setRootFolderId(username);
             }}
           >
             {" "}
             My Files{" "}
           </MenuItem>
           <SubMenu icon={<FolderSharedIcon />} label="Shared Files">
-            <MenuItem onClick={() => setTab("sharedfiles")}>
+            <MenuItem
+              onClick={() => {
+                setTab("sharedwithme");
+                const username =
+                  jwtDecode(localStorage.getItem("token")).sub["username"] +
+                  "/";
+                console.log(username);
+                setRootFolderId(username);
+              }}
+            >
               Shared With Me
             </MenuItem>
-            <MenuItem onClick={() => setTab("sharedfolders")}>
+            <MenuItem
+              onClick={() => {
+                setTab("sharedbyme");
+                const username =
+                  jwtDecode(localStorage.getItem("token")).sub["username"] +
+                  "/";
+                console.log(username);
+                setRootFolderId(username);
+              }}
+            >
               Shared By Me
             </MenuItem>
           </SubMenu>
+          <MenuItem
+            icon={<StorageIcon />}
+            style={{
+              height: "100px",
+              marginTop: "10px",
+            }}
+            onClick={() => setCollapsed(false)}
+          >
+            <>
+              {collapsed ? (
+                <></>
+              ) : (
+                <>
+                  <Typography variant="body1">Storage Used</Typography>
+                  <LinearProgress variant="determinate" value={value} />
+                  <Typography variant="body2">
+                    {value.toFixed(2)}% of {storageTotal} GB used
+                  </Typography>
+                </>
+              )}
+            </>
+          </MenuItem>
         </Menu>
       </Sidebar>
     </>
