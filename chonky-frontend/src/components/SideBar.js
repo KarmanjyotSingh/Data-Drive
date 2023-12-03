@@ -9,6 +9,18 @@ import { LinearProgress } from "@mui/material";
 import { Typography } from "@mui/material";
 import StorageIcon from "@mui/icons-material/Storage";
 import axios from "axios";
+
+/*
+Description:
+  SideBar component is used to display the sidebar of the application,
+  With the options, to navigate between the different tabs - my files, and shared files section
+
+  @props:
+  setRootFolderId: function to set the root folder id, when the user navigates through the folders
+  collapsed: boolean value to check if the sidebar is collapsed or not
+  setCollapsed: function to set the collapsed value
+  setTab: function to set the tab value, to navigate between the tabs
+*/
 export default function SideBar({
   setRootFolderId,
   collapsed,
@@ -28,7 +40,7 @@ export default function SideBar({
       .then((response) => {
         setStorageUsed(response.data.used);
         console.log(response.data);
-        const storageTotalInGB = (response.data.limit / (1024 ** 3)).toFixed(2);
+        const storageTotalInGB = (response.data.limit / 1024 ** 3).toFixed(2);
 
         setStorageTotal(storageTotalInGB);
         setValue((response.data.used / response.data.limit) * 100);

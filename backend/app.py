@@ -121,9 +121,12 @@ def insert_object():
 @app.route("/delete_object", methods=["POST"])
 def delete_object():
     bucket_name = request.json.get("bucket_name")
-    object_name = request.json.get("object_name")
+    object_names = request.json.get("object_name")
     client = Minio_Db()
-    return jsonify({"status": client.delete_object(bucket_name, object_name)})
+    status = 0
+    for object_name in object_names:
+        status = client.delete_object(bucket_name, object_name)
+    return jsonify({"status": status})
 
 
 # Delete folder from bucket
@@ -165,6 +168,14 @@ def create_folder():
 
 # Add shared file to database
 
+@app.route("/remove_shared_file", methods=["POST"])
+def remove_shared_file():
+    sender_id = request.json.get("sender_id")
+    reciever_id = request.json.get("reciever_id")
+    file_name = request.json.get("file_name")
+    bucket_name = request.json.get("bucket_name")
+    sql_client = SQL_Db()
+    return jsonify({"status": sql_client.remove_shared_file(reciever_id, file_name)})
 
 @app.route("/add_shared_file", methods=["POST"])
 def add_shared_file():
@@ -176,7 +187,7 @@ def add_shared_file():
     sql_client = SQL_Db()
     # check if user exists, if does not exist, return 0
     if sql_client.check_user(reciever_id) == 0:
-        return jsonify({"status": 69})
+        return jsonify({"status": 0})
     return jsonify(
         {
             "status": sql_client.add_shared_file(
@@ -195,6 +206,7 @@ def get_shared_files():
     for file in result:
         file["url"] = Minio_Db().get_objectURL(
             file["bucket_name"], file["file_name"])
+
     return jsonify({"shared_files": result})
 
 
@@ -203,15 +215,66 @@ def get_shared_files():
 def get_shared_by_self_files():
     user_id = request.json.get("user_id")
     sql_client = SQL_Db()
-    result = sql_client.get_shared_by_self_files(user_id)
-
+    result1 = sql_client.get_shared_by_self_files(user_id)
+    result2 = sql_client.get_public_files(user_id)
+    result = [*result1, *result2]
     for file in result:
         file["url"] = Minio_Db().get_objectURL(
             file["bucket_name"], file["file_name"])
     return jsonify({"shared_files": result})
 
 
+@app.route("/get_shared_file_data", methods=["POST"])
+def get_shared_file_data():
+    user_id = request.json.get("user_id")
+    file_name = request.json.get("file_name")
+    bucket_name = request.json.get("bucket_name")
+    sql_client = SQL_Db()
+    users = sql_client.get_shared_file_data(user_id, file_name, bucket_name)
+    isPublic = sql_client.is_public(user_id, file_name, bucket_name)
+    return jsonify({"users": users, "isPublic": isPublic})
+
+
+@app.route("/get_public_files", methods=["POST"])
+def get_public_files():
+    user_id = request.json.get("user_id")
+    sql_client = SQL_Db()
+    result = sql_client.get_public_files(user_id)
+    for file in result:
+        file["url"] = Minio_Db().get_objectURL(
+            file["bucket_name"], file["file_name"])
+    return jsonify({"shared_files": result})
+
+
+@app.route("/is_public", methods=["POST"])
+def file_is_public():
+    user_id = request.json.get("user_id")
+    file_name = request.json.get("file_name")
+    bucket_name = request.json.get("bucket_name")
+    sql_client = SQL_Db()
+    return jsonify({"is_public": sql_client.is_public(user_id, file_name, bucket_name)})
+
+
+@app.route("/add_public_file", methods=["POST"])
+def add_public_file():
+    user_id = request.json.get("sender_id")
+    file_name = request.json.get("file_name")
+    bucket_name = request.json.get("bucket_name")
+    sql_client = SQL_Db()
+    return jsonify({"status": sql_client.add_public_file(user_id, file_name, bucket_name)})
+
+
+@app.route("/remove_public_file", methods=["POST"])
+def remove_public_file():
+    user_id = request.json.get("user_id")
+    file_name = request.json.get("file_name")
+    bucket_name = request.json.get("bucket_name")
+    sql_client = SQL_Db()
+    return jsonify({"status": sql_client.remove_public_file(user_id, file_name, bucket_name)})
+
 # Get storage used and storage limit
+
+
 @app.route("/get_storage", methods=["POST"])
 def get_storage():
     user_id = request.json.get("user_id")

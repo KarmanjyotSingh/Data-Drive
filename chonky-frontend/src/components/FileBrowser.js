@@ -18,7 +18,7 @@ import { Box } from "@mui/material";
 import ReactPlayer from "react-player";
 import { ShareFiles, ShareFilesModal } from "./ShareFileCustomAction";
 import { jwtDecode } from "jwt-decode";
-
+import { ManageSharing, ManageSharingModal } from "./ManageSharingCustomAction";
 export function isDir(fileName) {
   return fileName[fileName.length - 1] === "/";
 }
@@ -80,6 +80,7 @@ export const MyFileBrowser = ({
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [openShareFileModal, setOpenShareFileModal] = useState(false);
+  const [manageSharingModal, setManageSharingModal] = useState(false);
   const [sharedFileData, setSharedFileData] = useState({});
   const [modalBody, setModalBody] = useState("");
   const [bucketName, setBucketName] = useState("");
@@ -273,6 +274,8 @@ export const MyFileBrowser = ({
             ChonkyActions.UploadFiles,
             ShareFiles,
           ]
+        : sharedType === "sharedbyme"
+        ? [ChonkyActions.DownloadFiles, ShareFiles, ManageSharing]
         : [ChonkyActions.DownloadFiles],
     [sharedType]
   );
@@ -367,7 +370,6 @@ export const MyFileBrowser = ({
             justifyContent: "center",
             alignItems: "center",
           }}
-          height="100%"
         />
       );
       setModalBody(video);
@@ -403,7 +405,7 @@ export const MyFileBrowser = ({
     const form = new FormData();
     for (let i = 0; i < files.length; i++) {
       file.push(files[i]);
-      form.append('files', files[i]);
+      form.append("files", files[i]);
     }
     console.log(form.entries());
     const data = jwtDecode(localStorage.getItem("token")).sub;
@@ -423,7 +425,7 @@ export const MyFileBrowser = ({
   };
 
   function handleFileDelete(fileToDelete) {
-    const object_name = fileToDelete.id;
+    const object_name = fileToDelete.map((file) => file.id);
     const bucket_name = jwtDecode(localStorage.getItem("token")).sub[
       "bucket_name"
     ];
@@ -435,16 +437,20 @@ export const MyFileBrowser = ({
       .post("http://localhost:5000/delete_object", body)
       .then((response) => {
         console.log(response);
-        if (fileToDelete.isDir) {
-          setFileMap((fileMap) => {
-            const newFileMap = { ...fileMap };
-            delete newFileMap[fileToDelete.id];
-            return newFileMap;
+
+        setFileMap((fileMap) => {
+          const newFileMap = { ...fileMap };
+          fileToDelete.forEach((file) => {
+            if (file.isDir) {
+              delete newFileMap[file.id];
+            }
           });
-        }
+          return newFileMap;
+        });
+
         setFileArray((fileArray) => {
           const newFileArray = fileArray.filter(
-            (file) => file.id !== fileToDelete.id
+            (file) => !fileToDelete.includes(file)
           );
           return newFileArray;
         });
@@ -478,13 +484,17 @@ export const MyFileBrowser = ({
         const fileToShare = data.state.selectedFiles[0];
         setOpenShareFileModal(true);
         setSharedFileData(fileToShare);
+      } else if (data.id === ManageSharing.id) {
+        const fileToShare = data.state.selectedFiles[0];
+        setManageSharingModal(true);
+        setSharedFileData(fileToShare);
       } else if (data.id === ChonkyActions.DownloadFiles.id) {
         console.log("download file", data);
         const fileToDownload = data.state.selectedFiles[0];
         console.log(fileToDownload);
         handleFileDownload(fileToDownload);
       } else if (data.id === ChonkyActions.DeleteFiles.id) {
-        handleFileDelete(data.state.selectedFiles[0]);
+        handleFileDelete(data.state.selectedFiles);
       } else if (data.id === ChonkyActions.UploadFiles.id) {
         console.log("upload file", data);
         inputFile.current.click();
@@ -521,7 +531,14 @@ export const MyFileBrowser = ({
           setSharedFile={setSharedFileData}
         />
       ) : null}
-
+      {manageSharingModal ? (
+        <ManageSharingModal
+          open={manageSharingModal}
+          setOpen={setManageSharingModal}
+          sharedFile={sharedFileData}
+          setSharedFile={setSharedFileData}
+        />
+      ) : null}
       <Box sx={{ display: "flex", height: "100vh" }}>
         <input
           type="file"
@@ -537,7 +554,6 @@ export const MyFileBrowser = ({
             files={fileArray}
             thumbnailGenerator={thumbnailGenerator}
             fileActions={fileActions}
-            // disableDefaultFileActions={true}
             onFileAction={useFileActionHandler()}
           >
             <FileNavbar />

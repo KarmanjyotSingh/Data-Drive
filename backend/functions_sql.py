@@ -97,6 +97,22 @@ class SQL_Db:
             print("Error in check_user: ", e)
             return 0
 
+    def remove_shared_file(self, user_id, file_name):
+        """
+        remove a shared file from the database
+        :param user_id: user id : str
+        :param file_name: file name : str
+        :return: status of the operation : int
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "DELETE FROM SharedFiles WHERE reciever_id = %s AND file_name = %s"
+                cursor.execute(sql, (user_id, file_name))
+                self.conn.commit()
+                return 1
+        except Exception as e:
+            print("Error in remove_shared_file: ", e)
+            return 0
     def add_shared_file(
         self, sender_id, reciever_id, file_name, bucket_name, perms="r"
     ):
@@ -119,6 +135,41 @@ class SQL_Db:
                 return 1
         except Exception as e:
             print("Error in add_shared_file: ", e)
+            return 0
+
+    def delete_file(self, user_id, file_name):
+        """
+        delete a file from the database
+        :param user_id: user id : str
+        :param file_name: file name : str
+        :return: status of the operation : int
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "DELETE FROM SharedFiles WHERE sender_id = %s AND file_name = %s"
+                cursor.execute(sql, (user_id, file_name))
+                self.conn.commit()
+                return 1
+        except Exception as e:
+            print("Error in delete_file: ", e)
+            return 0
+
+    def delete_shared_file(self, sender_id, reciever_id, file_name):
+        """
+        delete a shared file from the database
+        :param sender_id: sender id : str
+        :param reciever_id: reciever id : str
+        :param file_name: file name : str
+        :return: status of the operation : int
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "DELETE FROM SharedFiles WHERE sender_id = %s AND reciever_id = %s AND file_name = %s"
+                cursor.execute(sql, (sender_id, reciever_id, file_name))
+                self.conn.commit()
+                return 1
+        except Exception as e:
+            print("Error in delete_shared_file: ", e)
             return 0
 
     def get_shared_files(self, user_id):
@@ -152,6 +203,96 @@ class SQL_Db:
         except Exception as e:
             print("Error in get_shared_files: ", e)
             return None
+
+    def add_public_file(self, user_id, file_name, bucket_name):
+        """
+        add a public file to the database
+        :param user_id: user id : str
+        :param file_name: file name : str
+        :param bucket_name: bucket name : str
+        :return: status of the operation : int
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "INSERT INTO PublicFiles (user_id, file_name, bucket_name) VALUES (%s, %s, %s)"
+                cursor.execute(sql, (user_id, file_name, bucket_name))
+                self.conn.commit()
+                return 1
+        except Exception as e:
+            print("Error in add_public_file: ", e)
+            return 0
+
+    def get_public_files(self, user_id):
+        """
+        get all public files of a user from the database
+        :param user_id: user id : str
+        :return: public files : list
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "SELECT * FROM PublicFiles WHERE user_id = %s"
+                cursor.execute(sql, (user_id))
+                result = cursor.fetchall()
+                return result
+        except Exception as e:
+            print("Error in get_public_files: ", e)
+            return None
+        
+    def is_public(self,user_id,bucket_name,file_name):
+        """
+        check if a file is public
+        :param user_id: user id : str
+        :param bucket_name: bucket name : str
+        :param file_name: file name : str
+        :return: status of the operation : int
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "SELECT * FROM PublicFiles WHERE user_id = %s AND bucket_name = %s AND file_name = %s"
+                cursor.execute(sql, (user_id,file_name,bucket_name))
+                result = cursor.fetchone()
+                if result:
+                    return 1
+                else:
+                    return 0
+        except Exception as e:
+            print("Error in is_public: ", e)
+            return 0
+
+    def get_shared_file_data(self, user_id, file_name, bucket_name):
+        """
+        get all shared files of a user from the database
+        :param user_id: user id : str
+        :param file_name: file name : str
+        :param bucket_name: bucket name : str
+        :return: shared files : list
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "SELECT reciever_id,perms FROM SharedFiles WHERE sender_id = %s AND file_name = %s AND bucket_name = %s"
+                cursor.execute(sql, (user_id, file_name, bucket_name))
+                result = cursor.fetchall()
+                return result
+        except Exception as e:
+            print("Error in get_shared_file_data: ", e)
+            return None
+    def remove_public_file(self, user_id, file_name, bucket_name):
+        """
+        remove a public file from the database
+        :param user_id: user id : str
+        :param file_name: file name : str
+        :param bucket_name: bucket name : str
+        :return: status of the operation : int
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "DELETE FROM PublicFiles WHERE user_id = %s AND file_name = %s AND bucket_name = %s"
+                cursor.execute(sql, (user_id, file_name, bucket_name))
+                self.conn.commit()
+                return 1
+        except Exception as e:
+            print("Error in remove_public_file: ", e)
+            return 0
 
     def update_storage(self, user_id, type, size):
         """
@@ -220,7 +361,7 @@ class SQL_Db:
         except Exception as e:
             print("Error in get_users_table: ", e)
             return None
-        
+
     def change_limit(self, user_id, limit):
         """
         change the storage_limit of the user to new value that is >= storage_used

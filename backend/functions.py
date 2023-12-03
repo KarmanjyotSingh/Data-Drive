@@ -4,6 +4,7 @@ import config
 import io
 import os
 from functions_sql import SQL_Db
+import zipfile
 
 
 class Minio_Db:
@@ -52,6 +53,52 @@ class Minio_Db:
 
         return data
 
+    def download_object(self, bucket_name, object_name, file_path):
+        """
+        download the object from the given path, make it a zip file and return the path
+        :param bucket_name: Container name in Minio : str
+        :param object_name: name of minio object : str
+        """
+        try:
+            """checking the bucket exist or not"""
+            bucket = self.minioClient.bucket_exists(bucket_name)
+            if bucket:
+                try:
+                    data = self.minioClient.fget_object(
+                        bucket_name, object_name, file_path)
+                    return data
+                except S3Error as ex:
+                    print("Not able to get data from minio / ", (ex))
+            else:
+                print("Bucket does not exist")
+
+        except S3Error as ex:
+            print("Not able to get data from minio / ", (ex))
+        return None
+
+    def download_objects(self, bucket_name, object_name, file_path):
+        """
+        download the object from the given path, make it a zip file and return the path
+        :param bucket_name: Container name in Minio : str
+        :param object_name: name of minio object : str
+        """
+        try:
+            """checking the bucket exist or not"""
+            bucket = self.minioClient.bucket_exists(bucket_name)
+            if bucket:
+                try:
+                    data = self.minioClient.fget_object(
+                        bucket_name, object_name, file_path)
+                    return data
+                except S3Error as ex:
+                    print("Not able to get data from minio / ", (ex))
+            else:
+                print("Bucket does not exist")
+
+        except S3Error as ex:
+            print("Not able to get data from minio / ", (ex))
+        return None
+
     def insert_object(
         self, file, bucket_name, object_name, toCreateNewBucket=False, metadata={}
     ):
@@ -81,7 +128,7 @@ class Minio_Db:
                 if size + used > limit:
                     print("Storage limit exceeded")
                     return False
-                
+
                 data = self.minioClient.put_object(
                     bucket_name, object_name, file_data, size, metadata=metadata
                 )
@@ -118,14 +165,29 @@ class Minio_Db:
             bucket = self.minioClient.bucket_exists(bucket_name)
             if bucket:
                 # get size of object
-                object = self.minioClient.stat_object(bucket_name, object_name)
-                size = object.size
-                self.minioClient.remove_object(bucket_name, object_name)
+                size = 0
+                try:
+                    object = self.minioClient.stat_object(
+                        bucket_name, object_name)
+                    size = object.size
+                except:
+                    pass
+                objects_to_delete = self.minioClient.list_objects(
+                    bucket_name, prefix=object_name, recursive=True)
+                print("-------------------")
+                print(bucket_name)
+                print(object_name)
+                print("-------------------")
+
+                for obj in objects_to_delete:
+                    print(obj)
+                    self.minioClient.remove_object(
+                        bucket_name, obj.object_name)
                 # update size of User table
                 sql_client = SQL_Db()
                 sql_client.update_storage(
                     object_name.split("/")[0], "remove", size)
-
+                sql_client.delete_file(object_name.split("/")[0], object_name)
                 print("Object deleted sucessfully")
                 isSuccess = True
 

@@ -1,16 +1,16 @@
 import { ChonkyIconName, defineFileAction } from "chonky";
 // import { OpenFilesPayload } from 'chonky/lib/types/action-payloads.types';
 import React, { useState, useEffect } from "react";
-import Box from "@mui/material/Box";
 import { RadioGroup, FormControlLabel, Radio } from "@mui/material";
 import { Button } from "@mui/material";
-import { InputLabel, Typography, Select, MenuItem } from "@mui/material";
+import { InputLabel, Typography, Switch, Box } from "@mui/material";
 import Modal from "@mui/material/Modal";
 import { useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import axios from "axios";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
+
 const style = (theme) => ({
   position: "absolute",
   top: "50%",
@@ -31,6 +31,7 @@ export function ShareFilesModal(props) {
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [permission, setPermission] = useState("");
+  const [publicAccess, setPublicAccess] = useState(false);
 
   useEffect(() => {
     axios.get("http://localhost:5000/get_users").then((response) => {
@@ -46,26 +47,42 @@ export function ShareFilesModal(props) {
   };
 
   function handleShare() {
-    console.log(selectedUsers);
     const data = jwtDecode(localStorage.getItem("token")).sub;
     const sender = data["username"];
     const bucket_name = data["bucket_name"];
-    const requestBody = {
-      sender_id: sender,
-      reciever_id: selectedUsers,
-      file_name: props.sharedFile.id,
-      bucket_name: bucket_name,
-      perms: permission === "read" ? "r" : "w",
-    };
-    axios
-      .post("http://localhost:5000/add_shared_file", requestBody)
-      .then(function (response) {
-        console.log(response);
-        handleClose();
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
+    if (publicAccess) {
+      const requestBody = {
+        sender_id: sender,
+        bucket_name: bucket_name,
+        file_name: props.sharedFile.id,
+      };
+      axios
+        .post("http://localhost:5000/add_public_file", requestBody)
+        .then(function (response) {
+          console.log(response);
+          handleClose();
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    } else {
+      const requestBody = {
+        sender_id: sender,
+        reciever_id: selectedUsers,
+        file_name: props.sharedFile.id,
+        bucket_name: bucket_name,
+        perms: permission === "read" ? "r" : "w",
+      };
+      axios
+        .post("http://localhost:5000/add_shared_file", requestBody)
+        .then(function (response) {
+          console.log(response);
+          handleClose();
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
   }
 
   return (
@@ -89,11 +106,23 @@ export function ShareFilesModal(props) {
           </Typography>
           <Box sx={{ marginBottom: "20px" }}>
             <InputLabel id="select-permission-label">
+              Manage Public Access
+            </InputLabel>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={publicAccess}
+                  onChange={(event) => setPublicAccess(event.target.checked)}
+                />
+              }
+            />
+            <InputLabel id="select-permission-label">
               Select Permission
             </InputLabel>
             <RadioGroup
               aria-label="permissions"
               name="permissions"
+              disabled={publicAccess}
               sx={{
                 marginTop: "10px",
               }}
@@ -101,9 +130,15 @@ export function ShareFilesModal(props) {
               row
               onChange={(event) => setPermission(event.target.value)}
             >
-              <FormControlLabel value="read" control={<Radio />} label="Read" />
+              <FormControlLabel
+                disabled={publicAccess}
+                value="read"
+                control={<Radio />}
+                label="Read"
+              />
               <FormControlLabel
                 value="write"
+                disabled={publicAccess}
                 control={<Radio />}
                 label="Write"
               />
@@ -119,6 +154,8 @@ export function ShareFilesModal(props) {
               sx={{
                 marginTop: "10px",
               }}
+              multiple={false}
+              disabled={publicAccess}
               options={users}
               getOptionLabel={(option) => (option ? option : "")}
               value={selectedUsers}
@@ -137,7 +174,10 @@ export function ShareFilesModal(props) {
               variant="contained"
               color="primary"
               onClick={handleShare}
-              disabled={selectedUsers.length === 0 || permission === ""}
+              disabled={
+                !publicAccess &&
+                (selectedUsers.length === 0 || permission === "")
+              }
             >
               Share
             </Button>
