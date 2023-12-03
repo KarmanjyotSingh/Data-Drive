@@ -23,7 +23,7 @@ The Database Diagram is as follows:
 
 The Class Diagram is as follows:
 
-![Class Diagram](./docs/classes.png)
+![Class Diagram](./docs/classes.jpg)
 
 ## Features
 
