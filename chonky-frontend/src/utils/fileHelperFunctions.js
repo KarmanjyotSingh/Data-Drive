@@ -1,6 +1,6 @@
 /*
 @description:
-checks if the file is a directory
+
 */
 export function isDir(fileName) {
   return fileName[fileName.length - 1] === "/";
