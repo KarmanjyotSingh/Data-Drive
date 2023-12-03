@@ -1,12 +1,13 @@
 FROM react:18.2.0
 
-WORKDIR /frontend
+WORKDIR /chonky-frontend
 
-COPY package.json /frontend/package.json
-COPY package-lock.json /frontend/package-lock.json
-COPY public/ /frontend/public/
-COPY src/ /frontend/src/
+COPY package.json /chonky-frontend/package.json
+COPY package-lock.json /chonky-frontend//package-lock.json
+COPY public/ /chonky-frontend/public/
+COPY src/ /chonky-frontend/src/
 
 RUN npm install
 
 CMD ["npm", "start"]
+

@@ -4,7 +4,6 @@ import config
 import io
 import os
 from functions_sql import SQL_Db
-import zipfile
 
 
 class Minio_Db:
