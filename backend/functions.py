@@ -404,6 +404,33 @@ class Minio_Db:
 
         return isSuccess
 
+    def isDir(self, bucket_name, object_name):
+        """
+        check if the object is a directory or not
+        :param bucket_name: Container name in Minio : str
+        :param object_name: name of minio object : str
+        :return: status : True or False
+        """
+        isDirectory = False
+        try:
+            bucket = self.minioClient.bucket_exists(bucket_name)
+            print("-------------------")
+            print(bucket_name)
+            print(object_name)
+            print("-------------------")
+            if bucket:
+                object = self.minioClient.stat_object(bucket_name, object_name)
+                if object.size == 0:
+                    isDirectory = True
+                print("Object details fetched sucessfully")
+
+            else:
+                print("Bucket does not exist")
+
+        except S3Error as ex:
+            print("Not able to get data from minio / ", (ex))
+
+        return isDirectory
     def change_folder_path(self, bucket_name, folder_name, new_folder_name):
         """
         change folder path in bucket

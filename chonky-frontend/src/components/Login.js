@@ -30,7 +30,6 @@ function Login({ setToken }) {
         console.log(res);
         if (res.data.status === 1) {
           setToken(res.data.access_token);
-          // console.log(jwtDecode(res.data.access_token));
           navigate("/");
         }
       })

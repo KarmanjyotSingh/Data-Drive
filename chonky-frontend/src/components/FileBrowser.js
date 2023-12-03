@@ -80,7 +80,7 @@ export const MyFileBrowser = ({
       [rootfolderId]: createFolderDataObject(rootfolderId, name, null),
     });
     setFolderChain([createFolderDataObject(rootfolderId, name, null)]);
-  }, []);
+  }, [rootFolderId]);
 
   /*
   @description:

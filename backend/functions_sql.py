@@ -222,6 +222,21 @@ class SQL_Db:
             print("Error in add_public_file: ", e)
             return 0
 
+    def get_all_public_files(self):
+        """
+        get all public files from the database
+        :return: public files : list
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "SELECT * FROM PublicFiles"
+                cursor.execute(sql)
+                result = cursor.fetchall()
+                return result
+        except Exception as e:
+            print("Error in get_public_files: ", e)
+            return None
+        
     def get_public_files(self, user_id):
         """
         get all public files of a user from the database

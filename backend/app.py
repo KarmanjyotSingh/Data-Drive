@@ -168,6 +168,7 @@ def create_folder():
 
 # Add shared file to database
 
+
 @app.route("/remove_shared_file", methods=["POST"])
 def remove_shared_file():
     sender_id = request.json.get("sender_id")
@@ -176,6 +177,7 @@ def remove_shared_file():
     bucket_name = request.json.get("bucket_name")
     sql_client = SQL_Db()
     return jsonify({"status": sql_client.remove_shared_file(reciever_id, file_name)})
+
 
 @app.route("/add_shared_file", methods=["POST"])
 def add_shared_file():
@@ -202,7 +204,9 @@ def add_shared_file():
 def get_shared_files():
     user_id = request.json.get("user_id")
     sql_client = SQL_Db()
-    result = sql_client.get_shared_files(user_id)
+    result1 = sql_client.get_shared_files(user_id)
+    result2 = sql_client.get_all_public_files()
+    result = [*result1, *result2]
     for file in result:
         file["url"] = Minio_Db().get_objectURL(
             file["bucket_name"], file["file_name"])
@@ -252,7 +256,11 @@ def file_is_public():
     file_name = request.json.get("file_name")
     bucket_name = request.json.get("bucket_name")
     sql_client = SQL_Db()
-    return jsonify({"is_public": sql_client.is_public(user_id, file_name, bucket_name)})
+    return jsonify({
+        "is_public": sql_client.is_public(user_id, file_name, bucket_name),
+        "url": Minio_Db().get_objectURL(bucket_name, file_name),
+        "isDir" : Minio_Db().isDir(bucket_name, file_name)
+    })
 
 
 @app.route("/add_public_file", methods=["POST"])

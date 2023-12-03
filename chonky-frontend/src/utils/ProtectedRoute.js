@@ -35,8 +35,8 @@ export const PublicRoute = (props) => {
     // replace %2F with /
     const username = path.split("/")[2];
     const bucket_name = "datadrive";
-    const folderId =
-      path.split("/")[2] + "/" + path.split("/")[3].replace("%2F", "/") + "/";
+    const folder = path.split("/")[3].replace("%2F", "/").replace("%20", " ");
+    const folderId = path.split("/")[2] + "/" + folder + "/";
     console.log("folderId: " + folderId);
     const requestBody = {
       user_id: username,

@@ -27,6 +27,14 @@ CREATE TABLE SharedFiles (
     FOREIGN KEY (sender_id) REFERENCES Users(user_id)
 );
 
+CREATE TABLE IF NOT EXISTS PublicFiles (
+    user_id VARCHAR(255) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    bucket_name VARCHAR(255) NOT NULL,
+    PRIMARY KEY (user_id,file_name),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
 -- Add 2 users
 INSERT INTO Users (user_id, pass, bucket_name) VALUES ('user1', 'user1', 'datadrive');
 INSERT INTO Users (user_id, pass, bucket_name) VALUES ('user2', 'user2', 'datadrive');
