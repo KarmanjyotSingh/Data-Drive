@@ -6,8 +6,9 @@ import { Box } from "@mui/material";
 import SideBar from "./components/SideBar";
 import MetaDataPane from "./components/MetaData";
 import useToken from "./components/useToken";
-import ProtectedRoute from "./utils/ProtectedRoute";
+import {ProtectedRoute,PublicRoute} from "./utils/ProtectedRoute";
 import AdminPage from "./components/Admin";
+import { PublicViewFolder } from "./components/PublicAccess";
 function App() {
   const [collapsed, setCollapsed] = React.useState(false);
   const [tab, setTab] = React.useState("myfiles");
@@ -63,6 +64,52 @@ function App() {
               </ProtectedRoute>
             }
           ></Route>
+          <Route path="/logout" element={<Login setToken={removeToken} />} />
+          <Route
+            path="shared/:username/:folderId"
+            element={
+              <PublicRoute
+              setRootFolderId={setCurrentFolderId}
+              >
+                <Box>
+                  <Box sx={{ display: "flex", flexGrow: 1 }}>
+                    <Box>
+                      <SideBar
+                        setRootFolderId={setCurrentFolderId}
+                        collapsed={collapsed}
+                        setCollapsed={setCollapsed}
+                        setTab={setTab}
+                      />
+                    </Box>
+                    <Box
+                      sx={{ flexGrow: 1 }}
+                      onClick={() => {
+                        setShowMetaData(false);
+                      }}
+                    >
+                      <PublicViewFolder
+                        currentFolderId={currentFolderId}
+                        setCurrentFolderId={setCurrentFolderId}
+                        sharedType={tab}
+                        rootFolderId={rootFolderId}
+                        setRootFolderId={setRootFolderId}
+                        setMetaFileData={setMetaFileData}
+                        setShowMetaData={setShowMetaData}
+                      />
+                    </Box>
+
+                    <Box>
+                      <MetaDataPane
+                        showMetaData={showMetaData}
+                        setShowMetaData={setShowMetaData}
+                        metaFileData={metaFileData}
+                      />
+                    </Box>
+                  </Box>
+                </Box>
+              </PublicRoute>
+            }
+          />
           <Route path="/login" element={<Login setToken={setToken} />} />
           <Route
             path="/admin"
