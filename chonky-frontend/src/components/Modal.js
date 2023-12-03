@@ -19,11 +19,18 @@ const style = (theme) => ({
   boxShadow: theme.shadows[24],
   p: theme.spacing(4),
 });
+
+/*
+@description:
+  This component is used to display generate Modal for Previewing the file
+*/
 const DisplayModal = (props) => {
-  const [open, setOpen] = React.useState(props.open);
-  const [body, setBody] = React.useState(props.body);
+  const [open, setOpen] = React.useState(props.open); // boolean value to show or hide the modal
+  const [body, setBody] = React.useState(props.body); // body of the modal
   const theme = useTheme();
   const themedStyle = style(theme);
+  
+  // handles the close modal event
   const handleClose = () => {
     setOpen(false);
     props.setOpen(false);

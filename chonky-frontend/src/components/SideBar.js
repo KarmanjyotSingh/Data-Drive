@@ -30,6 +30,8 @@ export default function SideBar({
   const [storageUsed, setStorageUsed] = useState(0);
   const [storageTotal, setStorageTotal] = useState(0);
   const [value, setValue] = useState(0);
+  
+  // use effect to get the storage used and storage limit of the user
   useEffect(() => {
     const username = jwtDecode(localStorage.getItem("token")).sub["username"];
     const request_body = {

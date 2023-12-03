@@ -4,11 +4,21 @@ import { Grid, TextField } from "@mui/material";
 import CardContent from "@mui/material/CardContent";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import {jwtDecode} from 'jwt-decode';
+/*
+@description:
+  This component is used to display the login page
+@props:
+  setToken: function to set the token in the local storage
+*/
 function Login({ setToken }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+
+  /*
+  @description:
+    Handles the login button click event
+  */
   const handleLogin = (e) => {
     e.preventDefault();
     axios
@@ -32,13 +42,18 @@ function Login({ setToken }) {
   return (
     <Grid
       container
-      justifyContent="right"
       alignItems="center"
+      justifyContent="right" 
       style={{
         minHeight: "100vh",
         backgroundColor: "#f5f5f5",
+        backgroundImage: "url('https://media.giphy.com/media/7AtHoQ9XWbpwLRxs0t/giphy.gif')",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       }}
     >
+  
       <Grid item xs={12} sm={6} md={4}>
         <Card
           sx={{

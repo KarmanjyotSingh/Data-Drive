@@ -24,15 +24,20 @@ const style = (theme) => ({
   p: theme.spacing(4),
 });
 
+/*
+@description:
+  This component is used to display generate Modal for Previewing the file
+*/
 export function ShareFilesModal(props) {
   const theme = useTheme();
   const themedStyle = style(theme);
   const [open, setOpen] = useState(props.open);
-  const [users, setUsers] = useState([]);
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [users, setUsers] = useState([]); // users with existing access
+  const [selectedUsers, setSelectedUsers] = useState([]); // new users to be shared with
   const [permission, setPermission] = useState("");
   const [publicAccess, setPublicAccess] = useState(false);
 
+  
   useEffect(() => {
     axios.get("http://localhost:5000/get_users").then((response) => {
       const users = response.data.users.map((user) => user.user_id);
@@ -46,6 +51,10 @@ export function ShareFilesModal(props) {
     props.setSharedFile({});
   };
 
+  /*
+  @description:
+    Handles the share button click event
+  */
   function handleShare() {
     const data = jwtDecode(localStorage.getItem("token")).sub;
     const sender = data["username"];

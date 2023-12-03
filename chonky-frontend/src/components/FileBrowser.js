@@ -19,56 +19,25 @@ import ReactPlayer from "react-player";
 import { ShareFiles, ShareFilesModal } from "./ShareFileCustomAction";
 import { jwtDecode } from "jwt-decode";
 import { ManageSharing, ManageSharingModal } from "./ManageSharingCustomAction";
-export function isDir(fileName) {
-  return fileName[fileName.length - 1] === "/";
-}
+import {
+  isDir,
+  getPreviewName,
+  getFileArrayObject,
+  createFolderDataObject,
+} from "../utils/fileHelperFunctions";
 
-function getPreviewName(name) {
-  if (isDir(name)) {
-    let last = name.slice(0, name.length - 1);
-    let arr = last.split("/");
-    return arr[arr.length - 1];
-  } else {
-    let arr = name.split("/");
-    return arr[arr.length - 1];
-  }
-}
-
-function getFileArrayObject(fileData) {
-  // console.log(fileData.object_name);
-  const data = {
-    id: fileData.file_name,
-    name: getPreviewName(fileData.file_name),
-    isDir: isDir(fileData.file_name),
-    thumbnailUrl: isDir(fileData.file_name) ? "" : fileData.url,
-    size: fileData.size,
-    modDate: fileData.last_modified,
-    metadata: fileData.metadata,
-    parentId: "null",
-  };
-  return data;
-}
-function getParentId(id) {
-  const str = id;
-  let components = str.split("/");
-  components.pop();
-  components.pop();
-  let result = components.join("/");
-  if (result) result += "/";
-  return result;
-}
-function createFolderDataObject(id, name, parentId) {
-  const data = {
-    id: id,
-    name: name,
-    isDir: true,
-    parentId: getParentId(id),
-    childrenIds: [],
-    openable: true,
-  };
-  return data;
-}
-
+/*
+@description:
+Main File Browser Component for the DataDrive
+@params:
+currentFolderId: useState variable for the current folder id
+setCurrentFolderId: useState function to set the current folder id
+rootFolderId: useState variable for the root folder id
+setRootFolderId: useState function to set the root folder id
+sharedType: useState variable for the type of shared files
+setMetaFileData: useState function to set the meta data of the file
+setShowMetaData: useState function to set the state of the meta data modal
+*/
 export const MyFileBrowser = ({
   currentFolderId,
   setCurrentFolderId,
@@ -78,11 +47,11 @@ export const MyFileBrowser = ({
   setMetaFileData,
   setShowMetaData,
 }) => {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [openShareFileModal, setOpenShareFileModal] = useState(false);
-  const [manageSharingModal, setManageSharingModal] = useState(false);
-  const [sharedFileData, setSharedFileData] = useState({});
-  const [modalBody, setModalBody] = useState("");
+  const [modalOpen, setModalOpen] = useState(false); // sets display for custom-file-preview
+  const [openShareFileModal, setOpenShareFileModal] = useState(false); // sets display for custom-sharing-file-action
+  const [manageSharingModal, setManageSharingModal] = useState(false); // sets display for custom-manage-sharing-action
+  const [sharedFileData, setSharedFileData] = useState({}); // stores the file data for the file to be shared
+  const [modalBody, setModalBody] = useState(""); // stores the body for the custom-file-preview
   const [bucketName, setBucketName] = useState("");
   const bucketNameRef = useRef(bucketName);
   const rootFolderIdRef = useRef(rootFolderId);
@@ -93,6 +62,11 @@ export const MyFileBrowser = ({
   const fileMapRef = useRef(fileMap);
   const inputFile = useRef();
 
+  /* USE EFFECTS */
+  /*
+  @description:
+  Initialises the file browser, with initial parameters
+  */
   useEffect(() => {
     const token = localStorage.getItem("token");
     const data = jwtDecode(token).sub;
@@ -108,20 +82,43 @@ export const MyFileBrowser = ({
     setFolderChain([createFolderDataObject(rootfolderId, name, null)]);
   }, []);
 
+  /*
+  @description:
+  Set up the current bucket reference
+  */
   useEffect(() => {
     bucketNameRef.current = bucketName;
   }, [bucketName]);
+
+  /*
+  @description:
+  Set up the current root folder id reference
+  */
   useEffect(() => {
     rootFolderIdRef.current = rootFolderId;
   }, [rootFolderId]);
+
+  /*
+  @description:
+  Set up the current filemap reference
+  */
   useEffect(() => {
     fileMapRef.current = fileMap;
   }, [fileMap]);
+
+  /*
+  @description:
+  Set up the current folder reference
+  */
   useEffect(() => {
     currentFolderIdRef.current = currentFolderId;
   }, [currentFolderId]);
-  /* USE EFFECTS */
-  // GET OBJECTS //
+
+  /* 
+  GET OBJECTS 
+  @description:
+  based on the current folder id, fetch the objects from the backend
+  */
   useEffect(() => {
     if (currentFolderId === "") return;
     else if (currentFolderId === rootFolderIdRef.current) {
@@ -224,7 +221,8 @@ export const MyFileBrowser = ({
         });
     }
   }, [currentFolderId, sharedType]);
-  // FOLDER MAP //
+
+  // CREATE FOLDER DATA OBJECTS
   useEffect(() => {
     const newFileMap = {};
     fileArray.forEach((file) => {
@@ -262,8 +260,10 @@ export const MyFileBrowser = ({
     }
   }, [fileMap]);
 
-  // chonky action center
-  // defines and manages the action handler for files
+  /*
+  @description:
+  Defines possible actions for the file browser, depending on the current view
+  */
   const fileActions = useMemo(
     () =>
       sharedType === "myfiles"
@@ -283,7 +283,13 @@ export const MyFileBrowser = ({
     (file) => (file.thumbnailUrl ? file.thumbnailUrl : null),
     []
   );
-  // creates a new folder in the current directory
+
+  /*
+  @description:
+  Creates a new folder in the current folder
+  @params:
+  folderName: string
+  */
   const createFolder = (folderName) => {
     axios
       .post("http://localhost:5000/create_folder", {
@@ -317,8 +323,13 @@ export const MyFileBrowser = ({
         console.log(error);
       });
   };
-  // handle file preview
 
+  /*
+  @description:
+  Handles the file preview action
+  @params:
+  fileToOpen: object
+  */
   function handleFilePreview(fileToOpen) {
     const type = extractFiletype(fileToOpen.name);
     if (type === "image") {
@@ -378,6 +389,12 @@ export const MyFileBrowser = ({
     }
   }
 
+  /*
+  @description:
+  Handles the file download action
+  @params:
+  fileToDownload: object
+  */
   function handleFileDownload(fileToDownload) {
     axios
       .post("http://localhost:5000/get_downloadURL", {
@@ -397,6 +414,12 @@ export const MyFileBrowser = ({
       });
   }
 
+  /*
+  @description:
+  Handles the file upload action
+  @params:
+  e: event
+  */
   const handleFileUpload = (e) => {
     const files = e.target.files;
     let file = [];
@@ -424,6 +447,12 @@ export const MyFileBrowser = ({
       });
   };
 
+  /*
+  @description:
+  Handles the file delete action
+  @params:
+  fileToDelete: object
+  */
   function handleFileDelete(fileToDelete) {
     const object_name = fileToDelete.map((file) => file.id);
     const bucket_name = jwtDecode(localStorage.getItem("token")).sub[

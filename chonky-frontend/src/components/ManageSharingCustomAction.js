@@ -19,7 +19,6 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
-
 import Autocomplete from "@mui/material/Autocomplete";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -35,6 +34,11 @@ const style = (theme) => ({
   boxShadow: theme.shadows[24],
   p: theme.spacing(4),
 });
+
+/*
+@descriptiion: 
+The manage sharing component
+*/
 export function ManageSharingModal(props) {
   const theme = useTheme();
   const themedStyle = style(theme);
@@ -48,6 +52,11 @@ export function ManageSharingModal(props) {
   const [isPublic, setIsPublic] = useState(false);
   const [editModal, setOpenEditModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  
+  /*
+  @descriptiion:
+  Initialises the initial sharing state of the component
+  */
   useEffect(() => {
     const data = jwtDecode(localStorage.getItem("token")).sub;
     const sender = data["username"];
@@ -75,7 +84,12 @@ export function ManageSharingModal(props) {
           console.log(perms, users);
         }
       });
-  }, []);
+  }, [props.sharedFile]);
+
+  /*
+  @descriptiion:
+  Gets the list of users from the backend
+  */
   useEffect(() => {
     axios.get("http://localhost:5000/get_users").then((response) => {
       const users = response.data.users.map((user) => user.user_id);
@@ -89,6 +103,11 @@ export function ManageSharingModal(props) {
     props.setSharedFile({});
     window.location.reload();
   };
+
+  /*
+  @descriptiion:
+  Handles the share button click
+  */
   function handleShare() {
     if (isPublic) {
       const data = jwtDecode(localStorage.getItem("token")).sub;
@@ -147,6 +166,11 @@ export function ManageSharingModal(props) {
       });
     handleClose();
   }
+
+  /*
+  @descriptiion:
+  Handles the edit button click, in the second modal
+  */
   const handleClickOpenEdit = (user) => {
     setSelectedUser(user);
     setOpenEditModal(true);
@@ -155,6 +179,12 @@ export function ManageSharingModal(props) {
   const handleCloseEdit = () => {
     setOpenEditModal(false);
   };
+
+  /*
+  @descriptiion:
+  Handles the delete button click,
+  Deletes the shared access from the user
+  */
   function handleDelete(recieverId) {
     const data = jwtDecode(localStorage.getItem("token")).sub;
     const sender = data["username"];
@@ -170,7 +200,6 @@ export function ManageSharingModal(props) {
       .then(function (response) {
         console.log(response);
         handleClose();
-        window.location.reload();
       })
       .catch(function (error) {
         console.log(error);
