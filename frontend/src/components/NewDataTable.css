@@ -1,0 +1,51 @@
+ 
+.Overlay {
+    background-color: rgba(0, 0, 0, 0.55);
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: fixed;
+    display: none;
+    z-index: 5;
+  }
+  
+  .Overlay.Show {
+    display: block;
+  }
+  
+  .Modal {
+    position: fixed;
+    right: -150vh;
+    background-color: #fff;
+    width: 20%;
+    height: 60%;
+    box-shadow: 0 0 4px 0px rgba(0, 0, 0, 0.15);
+    /* left: 0; */
+    padding: 0 12px 12px;
+    transition: all 0.3s ease-out;
+    z-index: 10;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+  }
+  
+  .Modal.Show {
+    right: 0;
+  }
+  
+  .Close {
+    cursor: pointer;
+    position: absolute;
+    top: 16px;
+    right: 10px;
+    background-color: transparent;
+    border: 0;
+    font-size: 18px;
+  }
+
+  .Text {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    align-items: left;
+  }
