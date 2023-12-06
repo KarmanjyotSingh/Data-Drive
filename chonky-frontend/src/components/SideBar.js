@@ -30,7 +30,7 @@ export default function SideBar({
   const [storageUsed, setStorageUsed] = useState(0);
   const [storageTotal, setStorageTotal] = useState(0);
   const [value, setValue] = useState(0);
-  
+
   // use effect to get the storage used and storage limit of the user
   useEffect(() => {
     const username = jwtDecode(localStorage.getItem("token")).sub["username"];
@@ -38,7 +38,7 @@ export default function SideBar({
       user_id: username,
     };
     axios
-      .post("http://localhost:5000/get_storage", request_body)
+      .post("http://localhost:8000/get_storage", request_body)
       .then((response) => {
         setStorageUsed(response.data.used);
         console.log(response.data);

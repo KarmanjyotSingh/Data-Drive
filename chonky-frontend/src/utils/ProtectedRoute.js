@@ -45,7 +45,7 @@ export const PublicRoute = (props) => {
     };
     console.log(requestBody);
     axios
-      .post("http://localhost:5000/is_public", requestBody)
+      .post("http://localhost:8000/is_public", requestBody)
       .then((res) => {
         console.log(res.data);
         if (res.data.is_public === 1 && res.data.isDir === true) {

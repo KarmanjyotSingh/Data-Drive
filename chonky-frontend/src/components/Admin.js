@@ -30,7 +30,7 @@ export default function AdminPage() {
     const getUsers = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("http://localhost:5000/get_users");
+        const res = await axios.get("http://localhost:8000/get_users");
         setUsers(res.data.users);
         console.log(res.data.users);
       } catch (err) {
@@ -46,7 +46,7 @@ export default function AdminPage() {
     //Post request to change the storage limit, if successful, update the users list
 
     axios
-      .post("http://localhost:5000/update_storage_limit", {
+      .post("http://localhost:8000/update_storage_limit", {
         user_id: userId,
         storage_limit: newLimit,
       })

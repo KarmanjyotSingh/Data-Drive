@@ -126,7 +126,7 @@ export const MyFileBrowser = ({
         const data = jwtDecode(localStorage.getItem("token")).sub;
         const username = data["username"];
         axios
-          .post("http://localhost:5000/get_shared_by_self_files", {
+          .post("http://localhost:8000/get_shared_by_self_files", {
             user_id: username,
           })
           .then((response) => {
@@ -146,7 +146,7 @@ export const MyFileBrowser = ({
         const data = jwtDecode(localStorage.getItem("token")).sub;
         const username = data["username"];
         axios
-          .post("http://localhost:5000/get_shared_files", {
+          .post("http://localhost:8000/get_shared_files", {
             user_id: username,
           })
           .then((response) => {
@@ -164,7 +164,7 @@ export const MyFileBrowser = ({
           });
       } else {
         axios
-          .post("http://localhost:5000/list_objects", {
+          .post("http://localhost:8000/list_objects", {
             bucket_name: bucketNameRef.current,
             prefix: currentFolderId,
           })
@@ -193,7 +193,7 @@ export const MyFileBrowser = ({
       }
     } else {
       axios
-        .post("http://localhost:5000/list_objects", {
+        .post("http://localhost:8000/list_objects", {
           bucket_name: bucketNameRef.current,
           prefix: currentFolderId,
         })
@@ -292,7 +292,7 @@ export const MyFileBrowser = ({
   */
   const createFolder = (folderName) => {
     axios
-      .post("http://localhost:5000/create_folder", {
+      .post("http://localhost:8000/create_folder", {
         bucket_name: "datadrive",
         folder_name: currentFolderIdRef.current + folderName,
       })
@@ -397,7 +397,7 @@ export const MyFileBrowser = ({
   */
   function handleFileDownload(fileToDownload) {
     axios
-      .post("http://localhost:5000/get_downloadURL", {
+      .post("http://localhost:8000/get_downloadURL", {
         bucket_name: "datadrive",
         object_name: fileToDownload.id,
       })
@@ -436,7 +436,7 @@ export const MyFileBrowser = ({
     form.append("folder_name", currentFolderId);
     form.append("bucket_name", bucket_name);
     axios
-      .post("http://localhost:5000/insert_object", form)
+      .post("http://localhost:8000/insert_object", form)
       .then(function (response) {
         console.log(response.data);
         alert("Upload Successful");
@@ -463,7 +463,7 @@ export const MyFileBrowser = ({
       object_name: object_name,
     };
     axios
-      .post("http://localhost:5000/delete_object", body)
+      .post("http://localhost:8000/delete_object", body)
       .then((response) => {
         console.log(response);
 

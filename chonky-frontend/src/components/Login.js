@@ -22,7 +22,7 @@ function Login({ setToken }) {
   const handleLogin = (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:5000/login", {
+      .post("http://localhost:8000/login", {
         email: username,
         password: password,
       })
@@ -42,17 +42,17 @@ function Login({ setToken }) {
     <Grid
       container
       alignItems="center"
-      justifyContent="right" 
+      justifyContent="right"
       style={{
         minHeight: "100vh",
         backgroundColor: "#f5f5f5",
-        backgroundImage: "url('https://media.giphy.com/media/7AtHoQ9XWbpwLRxs0t/giphy.gif')",
+        backgroundImage:
+          "url('https://media.giphy.com/media/7AtHoQ9XWbpwLRxs0t/giphy.gif')",
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
-  
       <Grid item xs={12} sm={6} md={4}>
         <Card
           sx={{

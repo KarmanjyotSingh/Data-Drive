@@ -53,7 +53,7 @@ export const PublicViewFolder = ({
     const token = localStorage.getItem("token");
     const data = jwtDecode(token).sub;
     const name = data["username"];
-    const rootfolderId =folderId;
+    const rootfolderId = folderId;
     const bucket_name = data["bucket_name"];
     setBucketName(bucket_name);
     setRootFolderId(rootfolderId);
@@ -81,7 +81,7 @@ export const PublicViewFolder = ({
   useEffect(() => {
     if (currentFolderId === "") return;
     axios
-      .post("http://localhost:5000/list_objects", {
+      .post("http://localhost:8000/list_objects", {
         bucket_name: bucketNameRef.current,
         prefix: currentFolderId,
       })
@@ -148,10 +148,7 @@ export const PublicViewFolder = ({
 
   // chonky action center
   // defines and manages the action handler for files
-  const fileActions = useMemo(
-    () => [ChonkyActions.DownloadFiles],
-    []
-  );
+  const fileActions = useMemo(() => [ChonkyActions.DownloadFiles], []);
   const thumbnailGenerator = useCallback(
     (file) => (file.thumbnailUrl ? file.thumbnailUrl : null),
     []
@@ -219,7 +216,7 @@ export const PublicViewFolder = ({
 
   function handleFileDownload(fileToDownload) {
     axios
-      .post("http://localhost:5000/get_downloadURL", {
+      .post("http://localhost:8000/get_downloadURL", {
         bucket_name: "datadrive",
         object_name: fileToDownload.id,
       })
