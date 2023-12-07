@@ -33,8 +33,13 @@ function Login({ setToken }) {
         const x = jwtDecode(res.data.access_token);
         console.log(x);
         if (res.data.status === 1) {
-          setToken(res.data.access_token);
-          navigate("/");
+          if (res.data.admin === 1) {
+            setToken(res.data.access_token);
+            navigate("/admin");
+          } else {
+            setToken(res.data.access_token);
+            navigate("/");
+          }
         }
       })
       .catch((err) => {
