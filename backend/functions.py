@@ -99,7 +99,7 @@ class Minio_Db:
         return None
 
     def insert_object(
-        self, file, bucket_name, object_name, toCreateNewBucket=False, metadata={}
+        self, file, bucket_name, object_name, metadata={}
     ):
         """
         insert object into bucket
@@ -116,43 +116,35 @@ class Minio_Db:
             if bucket:
                 try:
                     contents = file.file.read()
-                    with open("temp" + file.filename, "wb") as f:
+                    with open("temp/" + file.filename, "wb") as f:
                         f.write(contents)
                 except S3Error as ex:
                     print("Not able to get data from minio / ", (ex))
                 finally:
                     file.file.close()
 
-                file_data = open("temp" + file.filename, "rb")
-                file_stat = os.stat("temp" + file.filename)
+                file_data = open("temp/" + file.filename, "rb")
+                file_stat = os.stat("temp/" + file.filename)
                 size = file_stat.st_size # size of file in bytes
-                size = size / 1000000 # size in mb
-                size = float("{:.3f}".format(size))
+                sizemb = (size / 1000000 )# size in mb
+                sizemb = float("{:.3f}".format(sizemb))
                 sql_client = SQL_Db()
                 limit = sql_client.get_storage_limit(object_name.split("/")[0]) # size in mb
                 used = sql_client.get_storage(object_name.split("/")[0]) # size in mb
-                if size + used > limit:
+                print(size, sizemb, used, limit)
+                if sizemb + used > limit:
                     print("Storage limit exceeded")
                     return False
 
                 data = self.minioClient.put_object(
                     bucket_name, object_name, file_data, size, metadata=metadata
                 )
-                print("~~~~~~~~~~~~~~~")
-                print(data.object_name, " is uploaded to ", data.bucket_name)
-                print(data.location)
-                print("~~~~~~~~~~~~~~~")
-                os.remove("temp" + file.filename)
+                file_data.close()
+                os.remove("temp/" + file.filename)
                 # update size of User table
                 sql_client.update_storage(
-                    object_name.split("/")[0], "add", size)
+                    object_name.split("/")[0], "add", sizemb)
                 print("Data uploaded")
-                isSuccess = True
-
-            elif toCreateNewBucket:
-                self.minioClient.make_bucket(bucket_name)
-                print("Bucket created sucessfully")
-                self.insert_data(file, bucket_name, object_name)
                 isSuccess = True
 
         except S3Error as ex:

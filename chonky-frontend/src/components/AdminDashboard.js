@@ -27,7 +27,7 @@ import { TablePagination } from "@mui/material";
 import { Chart as ChartJS, registerables } from "chart.js";
 ChartJS.register(...registerables);
 export default function AdminDashboard() {
-  const [collapsed,setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(false);
   const [currentBucket, setCurrentBucket] = useState("");
   const [totalUsers, setTotalUsers] = useState(0);
   const [defaultStorageLimit, setDefaultStorageLimit] = useState(50);
@@ -215,7 +215,7 @@ export default function AdminDashboard() {
 
   return (
     <Box sx={{ display: "flex", flexGrow: 1, maxWidth: "xs" }}>
-      <Box >
+      <Box>
         <Sidebar
           collapsed={collapsed}
           onToggle={() => setCollapsed(!collapsed)}
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
                 </div>
               </MenuItem>
             )}
-            <MenuItem icon={<HomeIcon />}> Dashboard </MenuItem>
+            <MenuItem icon={<HomeIcon />}> Admin Dashboard </MenuItem>
           </Menu>
         </Sidebar>
       </Box>
@@ -363,7 +363,7 @@ export default function AdminDashboard() {
                 <TableCell align="right">Bucket Name</TableCell>
                 <TableCell align="right">Storage Used</TableCell>
                 <TableCell align="right">Storage Limit</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell align="right"></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -379,8 +379,8 @@ export default function AdminDashboard() {
                       {row.user_id}
                     </TableCell>
                     <TableCell align="right">{row.bucket_name}</TableCell>
-                    <TableCell align="right">{row.storage_used}</TableCell>
-                    <TableCell align="right">{row.storage_limit}</TableCell>
+                    <TableCell align="right">{row.storage_used} MB</TableCell>
+                    <TableCell align="right">{row.storage_limit} MB</TableCell>
                     <TableCell align="right">
                       <IconButton
                         aria-label="delete"

@@ -55,7 +55,7 @@ class User(BaseModel):
 
 class Storage(BaseModel):
     user_id: Union[str, None] = None
-    storage_limit: Union[int, None] = None
+    storage_limit: Union[float, None] = None
     
 class Params(BaseModel):
     bucket_name: Union[str, None] = None
@@ -82,7 +82,7 @@ class Schema(BaseModel):
 
 class Storage(BaseModel):
     user_id: Union[str, None] = None
-    storage_limit: Union[int, None] = None
+    storage_limit: Union[float, None] = None
 
 class Settings(BaseModel):
     authjwt_secret_key: str = dotenv_values(".env")["jwt_secret_key"]

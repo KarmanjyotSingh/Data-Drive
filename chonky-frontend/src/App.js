@@ -7,7 +7,6 @@ import SideBar from "./components/SideBar";
 import MetaDataPane from "./components/MetaData";
 import useToken from "./components/useToken";
 import { ProtectedRoute, PublicRoute } from "./utils/ProtectedRoute";
-import AdminPage from "./components/Admin";
 import { PublicViewFolder } from "./components/PublicAccess";
 import AdminDashboard from "./components/AdminDashboard";
 function App() {
@@ -110,7 +109,6 @@ function App() {
             }
           />
           <Route path="/login" element={<Login setToken={setToken} />} />
-          
           <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </BrowserRouter>
