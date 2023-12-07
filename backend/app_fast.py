@@ -15,7 +15,6 @@ from typing import Type
 from pydantic.fields import ModelField
 from dotenv import dotenv_values
 import dotenv
-import os
 
 # load the .env file
 dotenv.load_dotenv('.env')
@@ -30,13 +29,14 @@ def as_form(cls: Type[BaseModel]):
         model_field: ModelField  # type: ignore
 
         new_parameters.append(
-             inspect.Parameter(
-                 model_field.alias,
-                 inspect.Parameter.POSITIONAL_ONLY,
-                 default=Form(...) if model_field.required else Form(model_field.default),
-                 annotation=model_field.outer_type_,
-             )
-         )
+            inspect.Parameter(
+                model_field.alias,
+                inspect.Parameter.POSITIONAL_ONLY,
+                default=Form(...) if model_field.required else Form(
+                    model_field.default),
+                annotation=model_field.outer_type_,
+            )
+        )
 
     async def as_form_func(**data):
         return cls(**data)
@@ -47,12 +47,16 @@ def as_form(cls: Type[BaseModel]):
     setattr(cls, 'as_form', as_form_func)
     return cls
 
+
 class User(BaseModel):
     email: str
     password: str
     bucket_name: Union[str, None] = None
 
-
+class Storage(BaseModel):
+    user_id: Union[str, None] = None
+    storage_limit: Union[int, None] = None
+    
 class Params(BaseModel):
     bucket_name: Union[str, None] = None
     prefix: Union[str, None] = None
@@ -63,7 +67,7 @@ class Params(BaseModel):
 
 @as_form
 class FileUpload(BaseModel):
-    file : UploadFile = File(...)
+    file: UploadFile = File(...)
     folder_name: str
     bucket_name: str
 
@@ -83,9 +87,11 @@ class Storage(BaseModel):
 class Settings(BaseModel):
     authjwt_secret_key: str = dotenv_values(".env")["jwt_secret_key"]
 
+
 @AuthJWT.load_config
 def get_config():
     return Settings()
+
 
 @app.exception_handler(AuthJWTException)
 def authjwt_exception_handler(request: Request, exc: AuthJWTException):
@@ -199,7 +205,7 @@ def list_objects(params: Params):
 
 
 @app.post("/insert_object")
-def insert_object(form: FileUpload=Depends(FileUpload.as_form)):
+def insert_object(form: FileUpload = Depends(FileUpload.as_form)):
     print(form)
     file = form.file
     folder_name = form.folder_name
@@ -207,7 +213,7 @@ def insert_object(form: FileUpload=Depends(FileUpload.as_form)):
     client = Minio_Db()
     status = 0
     status = client.insert_object(file,
-                                       bucket_name, folder_name+file.filename)
+                                  bucket_name, folder_name+file.filename)
     return {"status": status}
 
 # Delete object from bucket
@@ -447,7 +453,8 @@ def update_bucket(params: Params):
 
 @app.get("/get_bucket")
 def get_bucket():
-    return admin.getBucket()
+    return {
+        "bucket_name": admin.getBucket()}
 
 # Get all buckets
 
@@ -486,7 +493,6 @@ def get_default_storage_limit():
 def update_default_storage_limit(storage: Storage):
     newLimit = storage.storage_limit
     return admin.updateDefaultStorageLimit(newLimit)
-
 # Add bucket
 
 

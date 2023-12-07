@@ -110,17 +110,8 @@ function App() {
             }
           />
           <Route path="/login" element={<Login setToken={setToken} />} />
-          <Route
-            path="/admin"
-            element={
-              <Box>
-                <Box sx={{ display: "flex", flexGrow: 1 }}>
-                  <AdminPage />
-                </Box>
-              </Box>
-            }
-          />
-          <Route path="/adminpanel" element={<AdminDashboard />} />
+          
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </BrowserRouter>
     </div>
