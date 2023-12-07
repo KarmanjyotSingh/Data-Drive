@@ -55,7 +55,7 @@ export function ShareFilesModal(props) {
     Handles the share button click event
   */
   function handleShare() {
-    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const data = jwtDecode(localStorage.getItem("token"));
     const sender = data["username"];
     const bucket_name = data["bucket_name"];
     if (publicAccess) {

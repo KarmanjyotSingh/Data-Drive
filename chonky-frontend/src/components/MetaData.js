@@ -23,7 +23,7 @@ export default function MetaDataPane({
 
   // get the list of users with whom the file is shared
   useEffect(() => {
-    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const data = jwtDecode(localStorage.getItem("token"));
     const sender = data["username"];
     const bucket_name = data["bucket_name"];
     const requestBody = {

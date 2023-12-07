@@ -4,6 +4,7 @@ import { Grid, TextField } from "@mui/material";
 import CardContent from "@mui/material/CardContent";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 /*
 @description:
   This component is used to display the login page
@@ -28,6 +29,9 @@ function Login({ setToken }) {
       })
       .then((res) => {
         console.log(res);
+        console.log(res.data.access_token);
+        const x = jwtDecode(res.data.access_token);
+        console.log(x);
         if (res.data.status === 1) {
           setToken(res.data.access_token);
           navigate("/");

@@ -69,10 +69,18 @@ export const MyFileBrowser = ({
   */
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const data = jwtDecode(token).sub;
+    const data = jwtDecode(token);
     const name = data["username"];
     const rootfolderId = data["username"] + "/";
     const bucket_name = data["bucket_name"];
+    console.log(
+      "bucket name: ",
+      bucket_name,
+      "root folder id: ",
+      rootfolderId,
+      "name: ",
+      name
+    );
     setBucketName(bucket_name);
     setRootFolderId(rootfolderId);
     setCurrentFolderId(rootfolderId);
@@ -123,7 +131,7 @@ export const MyFileBrowser = ({
     if (currentFolderId === "") return;
     else if (currentFolderId === rootFolderIdRef.current) {
       if (sharedType === "sharedbyme") {
-        const data = jwtDecode(localStorage.getItem("token")).sub;
+        const data = jwtDecode(localStorage.getItem("token"));
         const username = data["username"];
         axios
           .post("http://localhost:8000/get_shared_by_self_files", {
@@ -143,7 +151,7 @@ export const MyFileBrowser = ({
             console.log(error);
           });
       } else if (sharedType === "sharedwithme") {
-        const data = jwtDecode(localStorage.getItem("token")).sub;
+        const data = jwtDecode(localStorage.getItem("token"));
         const username = data["username"];
         axios
           .post("http://localhost:8000/get_shared_files", {
@@ -217,6 +225,7 @@ export const MyFileBrowser = ({
           setFileArray(tempFileArray);
         })
         .catch((error) => {
+          console.log("current folder id: ", currentFolderId);
           console.log(error);
         });
     }
@@ -431,7 +440,7 @@ export const MyFileBrowser = ({
       form.append("files", files[i]);
     }
     console.log(form.entries());
-    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const data = jwtDecode(localStorage.getItem("token"));
     const bucket_name = data["bucket_name"];
     form.append("folder_name", currentFolderId);
     form.append("bucket_name", bucket_name);
@@ -455,7 +464,7 @@ export const MyFileBrowser = ({
   */
   function handleFileDelete(fileToDelete) {
     const object_name = fileToDelete.map((file) => file.id);
-    const bucket_name = jwtDecode(localStorage.getItem("token")).sub[
+    const bucket_name = jwtDecode(localStorage.getItem("token"))[
       "bucket_name"
     ];
     const body = {

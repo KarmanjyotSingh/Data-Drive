@@ -33,7 +33,7 @@ export default function SideBar({
 
   // use effect to get the storage used and storage limit of the user
   useEffect(() => {
-    const username = jwtDecode(localStorage.getItem("token")).sub["username"];
+    const username = jwtDecode(localStorage.getItem("token"))["username"];
     const request_body = {
       user_id: username,
     };
@@ -86,7 +86,7 @@ export default function SideBar({
             onClick={() => {
               setTab("myfiles");
               const username =
-                jwtDecode(localStorage.getItem("token")).sub["username"] + "/";
+                jwtDecode(localStorage.getItem("token"))["username"] + "/";
               console.log(username);
               setRootFolderId(username);
             }}
@@ -99,7 +99,7 @@ export default function SideBar({
               onClick={() => {
                 setTab("sharedwithme");
                 const username =
-                  jwtDecode(localStorage.getItem("token")).sub["username"] +
+                  jwtDecode(localStorage.getItem("token"))["username"] +
                   "/";
                 console.log(username);
                 setRootFolderId(username);
@@ -111,7 +111,7 @@ export default function SideBar({
               onClick={() => {
                 setTab("sharedbyme");
                 const username =
-                  jwtDecode(localStorage.getItem("token")).sub["username"] +
+                  jwtDecode(localStorage.getItem("token"))["username"] +
                   "/";
                 console.log(username);
                 setRootFolderId(username);

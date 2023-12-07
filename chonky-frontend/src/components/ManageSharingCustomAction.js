@@ -58,7 +58,7 @@ export function ManageSharingModal(props) {
   Initialises the initial sharing state of the component
   */
   useEffect(() => {
-    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const data = jwtDecode(localStorage.getItem("token"));
     const sender = data["username"];
     const bucket_name = data["bucket_name"];
     const requestBody = {
@@ -110,7 +110,7 @@ export function ManageSharingModal(props) {
   */
   function handleShare() {
     if (isPublic) {
-      const data = jwtDecode(localStorage.getItem("token")).sub;
+      const data = jwtDecode(localStorage.getItem("token"));
       const sender = data["username"];
       const bucket_name = data["bucket_name"];
       const requestBody = {
@@ -129,7 +129,7 @@ export function ManageSharingModal(props) {
         });
       return;
     }
-    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const data = jwtDecode(localStorage.getItem("token"));
     const sender = data["username"];
     const bucket_name = data["bucket_name"];
     const requestBody = {
@@ -186,7 +186,7 @@ export function ManageSharingModal(props) {
   Deletes the shared access from the user
   */
   function handleDelete(recieverId) {
-    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const data = jwtDecode(localStorage.getItem("token"));
     const sender = data["username"];
     const bucket_name = data["bucket_name"];
     const requestBody = {
