@@ -8,6 +8,7 @@ import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrow
 import { Grid } from "@mui/material";
 import axios from "axios";
 import { Card, CardContent, Typography } from "@mui/material";
+import { Bar } from "react-chartjs-2";
 import {
   Table,
   TableBody,
@@ -23,9 +24,12 @@ import { TextField, Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Edit } from "@mui/icons-material";
 import { TablePagination } from "@mui/material";
-
-export default function AdminDashboard({ collapsed, setCollapsed }) {
-  const [currentBucket, setCurrentBucket] = useState("bucket1");
+import { Chart as ChartJS, registerables } from "chart.js";
+ChartJS.register(...registerables);
+export default function AdminDashboard() {
+  const [collapsed,setCollapsed] = useState(false)
+  const [currentBucket, setCurrentBucket] = useState("");
+  const [totalUsers, setTotalUsers] = useState(0);
   const [defaultStorageLimit, setDefaultStorageLimit] = useState(50);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -36,24 +40,123 @@ export default function AdminDashboard({ collapsed, setCollapsed }) {
   const [selectedUserId, setSelectedUserId] = useState("");
   const [newLimit, setNewLimit] = useState("");
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [bucketNameForm, setBucketNameForm] = useState("");
+  const [bucketStats, setBucketStats] = useState({});
+  const [visibleBuckets, setVisibleBuckets] = useState([]);
 
+  const data = {
+    labels: visibleBuckets.map(([bucketName, stats]) => bucketName),
+    datasets: [
+      {
+        label: "Storage Used",
+        data: visibleBuckets.map(([bucketName, stats]) => stats.storage_used),
+        backgroundColor: "rgba(75,192,192,0.6)",
+      },
+      {
+        label: "Storage Limit",
+        data: visibleBuckets.map(([bucketName, stats]) => stats.storage_limit),
+        backgroundColor: "rgba(255,99,132,0.6)",
+      },
+    ],
+  };
+  const options = {
+    indexAxis: "y",
+    elements: {
+      bar: {
+        borderWidth: 2,
+      },
+    },
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "right",
+      },
+      title: {
+        display: true,
+        text: "Bucket Storage",
+      },
+    },
+  };
+  useEffect(() => {
+    axios.get("http://localhost:8000/get_storage_used_stats").then((res) => {
+      console.log(res.data.data);
+      setBucketStats(res.data.data);
+    });
+  }, []);
+  useEffect(() => {
+    // Convert the bucketStats object to an array and take the first 5 elements
+    setVisibleBuckets(Object.entries(bucketStats).slice(0, 5));
+  }, [bucketStats]);
   useEffect(() => {
     const getUsers = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("http://localhost:5000/get_users");
+        const res = await axios.get("http://localhost:8000/get_users");
         setUsers(res.data.users);
+        setTotalUsers(res.data.users.length);
         console.log(res.data.users);
       } catch (err) {
         setError(err);
       }
       setLoading(false);
     };
+    try {
+      axios.get("http://localhost:8000/get_bucket").then((res) => {
+        console.log(res);
+        setCurrentBucket(res.data.bucket_name);
+        setBucketNameForm(res.data.bucket_name);
+      });
+    } catch (err) {
+      setError(err);
+    }
+    try {
+      axios.get("http://localhost:8000/current_bucket_storage").then((res) => {
+        console.log(res.data);
+        const storage_used = res.data.data.storage_used;
+        const bucket_size = res.data.data.storage_limit;
+        const percentage = (storage_used / bucket_size) * 100;
+
+        setCurrentBucketSize(percentage.toFixed(2));
+      });
+    } catch (err) {
+      setError(err);
+    }
+    try {
+      axios
+        .get("http://localhost:8000/get_default_storage_limit")
+        .then((res) => {
+          console.log(res.data.data.default_storage_limit);
+          setDefaultStorageLimit(res.data.data.default_storage_limit);
+        });
+    } catch (err) {
+      setError(err);
+    }
+    setLoading(false);
     getUsers();
   }, []);
 
-  function handleBucketChange(newBucketName) {}
-  function handleUpdateBucket() {}
+  function handleBucketChange(newBucketName) {
+    setBucketNameForm(newBucketName);
+  }
+  function handleUpdateBucket() {
+    axios
+      .post("http://localhost:8000/update_bucket", {
+        bucket_name: bucketNameForm,
+      })
+      .then((res) => {
+        console.log(res);
+        window.location.reload();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+  function handleUpdateDefaultStorageLimit() {
+    axios.post("http://localhost:8000/update_default_storage_limit", {
+      newLimit: defaultStorageLimit,
+    });
+    // window.location.reload();
+  }
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -85,7 +188,7 @@ export default function AdminDashboard({ collapsed, setCollapsed }) {
 
   const handleStorageLimitChange = (userId, newLimit) => {
     axios
-      .post("http://localhost:5000/update_storage_limit", {
+      .post("http://localhost:8000/update_storage_limit", {
         user_id: userId,
         storage_limit: newLimit,
       })
@@ -112,7 +215,7 @@ export default function AdminDashboard({ collapsed, setCollapsed }) {
 
   return (
     <Box sx={{ display: "flex", flexGrow: 1, maxWidth: "xs" }}>
-      <Box>
+      <Box >
         <Sidebar
           collapsed={collapsed}
           onToggle={() => setCollapsed(!collapsed)}
@@ -193,7 +296,7 @@ export default function AdminDashboard({ collapsed, setCollapsed }) {
                 <Typography variant="h5" component="div">
                   Total Users
                 </Typography>
-                <Typography variant="h2">100</Typography>
+                <Typography variant="h2">{totalUsers}</Typography>
               </CardContent>{" "}
             </Card>
           </Grid>
@@ -207,8 +310,11 @@ export default function AdminDashboard({ collapsed, setCollapsed }) {
                   <TextField
                     id="outlined-basic"
                     variant="outlined"
-                    value={currentBucket}
-                    onChange={handleBucketChange}
+                    value={bucketNameForm}
+                    onChange={
+                      (e) => handleBucketChange(e.target.value)
+                      // console.log(e.target.value)
+                    }
                   />
                   <Button variant="contained" onClick={handleUpdateBucket}>
                     Update Bucket
@@ -234,9 +340,12 @@ export default function AdminDashboard({ collapsed, setCollapsed }) {
                   id="outlined-basic"
                   variant="outlined"
                   value={defaultStorageLimit}
-                  onChange={handleBucketChange}
+                  onChange={(e) => setDefaultStorageLimit(e.target.value)}
                 />
-                <Button variant="contained" onClick={handleUpdateBucket}>
+                <Button
+                  variant="contained"
+                  onClick={handleUpdateDefaultStorageLimit}
+                >
                   Update Storage Limit
                 </Button>
               </Box>
@@ -303,7 +412,11 @@ export default function AdminDashboard({ collapsed, setCollapsed }) {
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </TableContainer>
+        <div>
+          <Bar data={data} options={options} />
+        </div>
       </Box>
+
       <Modal open={openModal} onClose={handleCloseModal}>
         <Box
           display="flex"

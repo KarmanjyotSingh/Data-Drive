@@ -60,12 +60,13 @@ def getStorageUsedStats():
         sql_client = SQL_Db()
         # get all buckets
         buckets = sql_client.get_buckets()
-
+        print(buckets)
         dict = {}
         for bucket in buckets:
-            dict[bucket] = {
-                "storage_used": sql_client.bucket_storage_used(bucket),
-                "storage_limit": sql_client.bucket_storage_limit(bucket)
+            bucket_name = bucket["bucket_name"]
+            dict[bucket_name] = {
+                "storage_used": sql_client.bucket_storage_used(bucket_name),
+                "storage_limit": sql_client.bucket_storage_limit(bucket_name)
             }
         return {
             "status": 200,
