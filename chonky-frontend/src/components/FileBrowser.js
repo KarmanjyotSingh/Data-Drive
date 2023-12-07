@@ -435,11 +435,12 @@ export const MyFileBrowser = ({
     console.log("UPLOADING FILES");
 
     const form = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      file.push(files[i]);
-      form.append("files", files[i]);
+    for (let i = 0; i < 1; i++) {
+      file = files[i];
     }
-    console.log(form.entries());
+    // what is data type of file
+    console.log(file);
+    form.append("file", file);
     const data = jwtDecode(localStorage.getItem("token"));
     const bucket_name = data["bucket_name"];
     form.append("folder_name", currentFolderId);
@@ -464,9 +465,7 @@ export const MyFileBrowser = ({
   */
   function handleFileDelete(fileToDelete) {
     const object_name = fileToDelete.map((file) => file.id);
-    const bucket_name = jwtDecode(localStorage.getItem("token"))[
-      "bucket_name"
-    ];
+    const bucket_name = jwtDecode(localStorage.getItem("token"))["bucket_name"];
     const body = {
       bucket_name: bucket_name,
       object_name: object_name,

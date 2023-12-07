@@ -9,8 +9,10 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from werkzeug.security import generate_password_hash
 from fastapi_jwt_auth.exceptions import AuthJWTException
-from fastapi import FastAPI, Depends, HTTPException, Request
-
+from fastapi import FastAPI, Form, File, UploadFile, Depends, HTTPException, Request
+import inspect
+from typing import Type
+from pydantic.fields import ModelField
 from dotenv import dotenv_values
 import dotenv
 import os
@@ -20,6 +22,30 @@ dotenv.load_dotenv('.env')
 
 app = FastAPI()
 
+
+def as_form(cls: Type[BaseModel]):
+    new_parameters = []
+
+    for field_name, model_field in cls.__fields__.items():
+        model_field: ModelField  # type: ignore
+
+        new_parameters.append(
+             inspect.Parameter(
+                 model_field.alias,
+                 inspect.Parameter.POSITIONAL_ONLY,
+                 default=Form(...) if model_field.required else Form(model_field.default),
+                 annotation=model_field.outer_type_,
+             )
+         )
+
+    async def as_form_func(**data):
+        return cls(**data)
+
+    sig = inspect.signature(as_form_func)
+    sig = sig.replace(parameters=new_parameters)
+    as_form_func.__signature__ = sig  # type: ignore
+    setattr(cls, 'as_form', as_form_func)
+    return cls
 
 class User(BaseModel):
     email: str
@@ -35,6 +61,13 @@ class Params(BaseModel):
     object_name: Union[str, None] = None
 
 
+@as_form
+class FileUpload(BaseModel):
+    file : UploadFile = File(...)
+    folder_name: str
+    bucket_name: str
+
+
 class Schema(BaseModel):
     user_id: Union[str, None] = None
     sender_id: Union[str, None] = None
@@ -45,8 +78,11 @@ class Schema(BaseModel):
 
 
 class Settings(BaseModel):
-    authjwt_secret_key: str = "secretqwertyuiopasdfghjklzxcvbnm"
+    authjwt_secret_key: str = dotenv_values(".env")["jwt_secret_key"]
 
+@AuthJWT.load_config
+def get_config():
+    return Settings()
 
 @app.exception_handler(AuthJWTException)
 def authjwt_exception_handler(request: Request, exc: AuthJWTException):
@@ -160,16 +196,15 @@ def list_objects(params: Params):
 
 
 @app.post("/insert_object")
-def insert_object(params: Params):
-    bucket_name = params.bucket_name
-    files = params.files
-    folder_name = params.folder_name
+def insert_object(form: FileUpload=Depends(FileUpload.as_form)):
+    print(form)
+    file = form.file
+    folder_name = form.folder_name
+    bucket_name = form.bucket_name
     client = Minio_Db()
     status = 0
-    for file in files:
-        status += client.insert_object(file,
+    status = client.insert_object(file,
                                        bucket_name, folder_name+file.filename)
-
     return {"status": status}
 
 # Delete object from bucket
@@ -410,6 +445,15 @@ def update_bucket(params: Params):
 @app.get("/get_bucket")
 def get_bucket():
     return admin.getBucket()
+
+# Get all buckets
+
+
+@app.get("/get_buckets")
+def get_buckets():
+    sqlclient = SQL_Db()
+    return {"buckets": sqlclient.get_buckets()}
+
 
 # Get storage used stats for all buckets
 

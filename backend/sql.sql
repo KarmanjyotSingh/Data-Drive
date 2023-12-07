@@ -35,9 +35,19 @@ CREATE TABLE IF NOT EXISTS PublicFiles (
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
 
+CREATE TABLE IF NOT EXISTS Buckets (
+    bucket_name VARCHAR(255) NOT NULL,
+    storage_limit BIGINT DEFAULT 100000000000, -- 100 GB
+    PRIMARY KEY (bucket_name)
+);
+
 -- Add 2 users
 INSERT INTO Users (user_id, pass, bucket_name) VALUES ('user1', 'user1', 'datadrive');
 INSERT INTO Users (user_id, pass, bucket_name) VALUES ('user2', 'user2', 'datadrive');
 
 INSERT INTO Users (user_id, pass, bucket_name) VALUES ('redflags', 'redflags', 'datadrive');
 INSERT INTO Users (user_id, pass, bucket_name) VALUES ('user3', 'user3', 'datadrive');
+
+-- Add 2 buckets
+INSERT INTO Buckets (bucket_name) VALUES ('datadrive');
+INSERT INTO Buckets (bucket_name) VALUES ('redflags');

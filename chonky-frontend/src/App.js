@@ -6,9 +6,10 @@ import { Box } from "@mui/material";
 import SideBar from "./components/SideBar";
 import MetaDataPane from "./components/MetaData";
 import useToken from "./components/useToken";
-import {ProtectedRoute,PublicRoute} from "./utils/ProtectedRoute";
+import { ProtectedRoute, PublicRoute } from "./utils/ProtectedRoute";
 import AdminPage from "./components/Admin";
 import { PublicViewFolder } from "./components/PublicAccess";
+import AdminDashboard from "./components/AdminDashboard";
 function App() {
   const [collapsed, setCollapsed] = React.useState(false);
   const [tab, setTab] = React.useState("myfiles");
@@ -68,9 +69,7 @@ function App() {
           <Route
             path="shared/:username/:folderId"
             element={
-              <PublicRoute
-              setRootFolderId={setCurrentFolderId}
-              >
+              <PublicRoute setRootFolderId={setCurrentFolderId}>
                 <Box>
                   <Box sx={{ display: "flex", flexGrow: 1 }}>
                     <Box>
@@ -121,6 +120,7 @@ function App() {
               </Box>
             }
           />
+          <Route path="/adminpanel" element={<AdminDashboard />} />
         </Routes>
       </BrowserRouter>
     </div>

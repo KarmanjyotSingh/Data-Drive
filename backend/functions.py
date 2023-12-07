@@ -114,7 +114,15 @@ class Minio_Db:
         try:
             bucket = self.minioClient.bucket_exists(bucket_name)
             if bucket:
-                file.save("temp" + file.filename)
+                try:
+                    contents = file.file.read()
+                    with open("temp" + file.filename, "wb") as f:
+                        f.write(contents)
+                except S3Error as ex:
+                    print("Not able to get data from minio / ", (ex))
+                finally:
+                    file.file.close()
+
                 file_data = open("temp" + file.filename, "rb")
                 file_stat = os.stat("temp" + file.filename)
                 size = file_stat.st_size
