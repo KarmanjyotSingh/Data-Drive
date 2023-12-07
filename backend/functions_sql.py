@@ -332,7 +332,7 @@ class SQL_Db:
         update storage of a user in the database
         :param user_id: user id : str
         :param type: type of operation : str
-        :param size: size of the file : int
+        :param size: size of the file : float
         :return: status of the operation : int
         """
         try:
@@ -352,7 +352,7 @@ class SQL_Db:
         """
         get storage of a user from the database
         :param user_id: user id : str
-        :return: storage of the user : int
+        :return: storage of the user : float
         """
         try:
             with self.conn.cursor() as cursor:
@@ -368,7 +368,7 @@ class SQL_Db:
         """
         get storage of a user from the database
         :param user_id: user id : str
-        :return: storage of the user : int
+        :return: storage of the user : float
         """
         try:
             with self.conn.cursor() as cursor:
@@ -399,7 +399,7 @@ class SQL_Db:
         """
         change the storage_limit of the user to new value that is >= storage_used
         :param user_id: user id : str
-        :param limit: new limit : int
+        :param limit: new limit : float
         :return: status of the operation : int
         """
         try:
@@ -422,7 +422,7 @@ class SQL_Db:
         """
         get storage limit of a bucket
         :param bucket_name: bucket name : str
-        :return: storage limit : int
+        :return: storage limit : float
         """
         try:
             with self.conn.cursor() as cursor:
@@ -438,7 +438,7 @@ class SQL_Db:
         """
         get storage used of a bucket
         :param bucket_name: bucket name : str
-        :return: storage used : int
+        :return: storage used : float
         """
         try:
             with self.conn.cursor() as cursor:
@@ -454,7 +454,7 @@ class SQL_Db:
         """
         add a bucket to the database
         :param bucket_name: bucket name : str
-        :param storage_limit: storage limit : int
+        :param storage_limit: storage limit : float
         :return: status of the operation : int
         """
         try:

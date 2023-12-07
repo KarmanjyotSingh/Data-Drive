@@ -76,6 +76,9 @@ class Schema(BaseModel):
     bucket_name: Union[str, None] = None
     perms: Union[str, None] = None
 
+class Storage(BaseModel):
+    user_id: Union[str, None] = None
+    storage_limit: Union[int, None] = None
 
 class Settings(BaseModel):
     authjwt_secret_key: str = dotenv_values(".env")["jwt_secret_key"]
@@ -402,9 +405,9 @@ def get_storage(schema: Schema):
 
 
 @app.post("/update_storage_limit")
-def update_storage_limit(schema: Schema):
-    user_id = schema.user_id
-    storage_limit = schema.storage_limit
+def update_storage_limit(storage: Storage):
+    user_id = storage.user_id
+    storage_limit = storage.storage_limit
     sql_client = SQL_Db()
     return {"status": sql_client.change_limit(user_id, storage_limit)}
 
@@ -480,7 +483,8 @@ def get_default_storage_limit():
 
 
 @app.post("/update_default_storage_limit")
-def update_default_storage_limit(newLimit: int):
+def update_default_storage_limit(storage: Storage):
+    newLimit = storage.storage_limit
     return admin.updateDefaultStorageLimit(newLimit)
 
 # Add bucket

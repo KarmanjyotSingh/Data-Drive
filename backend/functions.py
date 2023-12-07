@@ -125,13 +125,12 @@ class Minio_Db:
 
                 file_data = open("temp" + file.filename, "rb")
                 file_stat = os.stat("temp" + file.filename)
-                size = file_stat.st_size
+                size = file_stat.st_size # size of file in bytes
+                size = size / 1000000 # size in mb
+                size = float("{:.3f}".format(size))
                 sql_client = SQL_Db()
-                limit = sql_client.get_storage_limit(object_name.split("/")[0])
-                used = sql_client.get_storage(object_name.split("/")[0])
-                print("used: ", used)
-                print("limit: ", limit)
-                print("size: ", type(size))
+                limit = sql_client.get_storage_limit(object_name.split("/")[0]) # size in mb
+                used = sql_client.get_storage(object_name.split("/")[0]) # size in mb
                 if size + used > limit:
                     print("Storage limit exceeded")
                     return False
@@ -177,6 +176,8 @@ class Minio_Db:
                     object = self.minioClient.stat_object(
                         bucket_name, object_name)
                     size = object.size
+                    size = size / 1000000 # size in mb
+                    size = float("{:.3f}".format(size))
                 except:
                     pass
                 objects_to_delete = self.minioClient.list_objects(
@@ -226,6 +227,8 @@ class Minio_Db:
                     object = self.minioClient.stat_object(
                         bucket_name, obj.object_name)
                     size = object.size
+                    size = size / 1000000
+                    size = float("{:.3f}".format(size))
                     self.minioClient.remove_object(
                         bucket_name, obj.object_name)
                     # update size of User table
