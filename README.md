@@ -52,3 +52,33 @@ Selected data formats can be seen within the program itself. Markdown, images, v
 
 ![Mark-Down](./docs/markdown-viewer.png)
 ![GIFs](./docs/gif.png)
+
+# How to run the project
+
+## Without Docker
+
+## Backend
+
+1. Read the README.md file in the backend folder.
+2. Follow the instructions in the README.md file.
+
+## Frontend
+
+1. Read the README.md file in the chonky-frontend folder.
+2. Follow the instructions in the README.md file.
+
+## With Docker
+
+1. Run the following command in the root directory of the project:
+
+```bash
+docker-compose up
+```
+
+2. The frontend will be available at `http://localhost:3000`
+3. The backend will be available at `http://localhost:8000`
+4. Run the minio and mysql server as mentioned in the backend README.md file.
+   4.1. The minio server will be available at `http://localhost:9000`
+   4.2. The mysql server will be available at `http://localhost:3306`
+5. To make the backend server inside docker container to connect to the minio and mysql server follow the instructions in the link below:
+   https://stackoverflow.com/questions/31324981/how-to-access-host-port-from-docker-container
