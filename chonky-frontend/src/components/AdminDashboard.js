@@ -31,6 +31,8 @@ export default function AdminDashboard() {
   const [currentBucket, setCurrentBucket] = useState("");
   const [totalUsers, setTotalUsers] = useState(0);
   const [defaultStorageLimit, setDefaultStorageLimit] = useState(50);
+  const [currentStorage, setCurrentStorage] = useState(0);
+  const [currentLimit, setCurrentLimit] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentBucketSize, setCurrentBucketSize] = useState(50);
@@ -115,7 +117,8 @@ export default function AdminDashboard() {
         const storage_used = res.data.data.storage_used;
         const bucket_size = res.data.data.storage_limit;
         const percentage = (storage_used / bucket_size) * 100;
-
+        setCurrentStorage(storage_used);
+        setCurrentLimit(bucket_size);
         setCurrentBucketSize(percentage.toFixed(2));
       });
     } catch (err) {
@@ -248,8 +251,8 @@ export default function AdminDashboard() {
           </Menu>
         </Sidebar>
       </Box>
-      <Box sx={{ width: "100%" }}>
-        <Grid sx={{ margin: 2 }} container spacing={2}>
+      <Box sx={{ width: "100%", p: 2 }}>
+        <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ height: 300, width: 300 }}>
               <CardContent>
@@ -257,7 +260,8 @@ export default function AdminDashboard() {
                   {currentBucket}
                 </Typography>
                 <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                  {currentBucketSize}% Full
+                  {currentStorage.toPrecision(2)} used of{" "}
+                  {currentLimit.toPrecision(2)} GB
                 </Typography>
                 <div style={{ width: 200, height: 200 }}>
                   <CircularProgressbar
@@ -352,69 +356,80 @@ export default function AdminDashboard() {
             </Card>
           </Grid>
         </Grid>
-        <TableContainer
-          component={Paper}
-          sx={{ maxWidth: "95%", overflowX: "auto", margin: 2 }}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            maxWidth: "100%",
+            mt: 2,
+          }}
         >
-          <Table sx={{ minWidth: 100 }} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell>User ID</TableCell>
-                <TableCell align="right">Bucket Name</TableCell>
-                <TableCell align="right">Storage Used</TableCell>
-                <TableCell align="right">Storage Limit</TableCell>
-                <TableCell align="right"></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row) => (
-                  <TableRow key={row.user_id}>
-                    <TableCell
-                      style={{ width: 100 }}
-                      component="th"
-                      scope="row"
-                    >
-                      {row.user_id}
-                    </TableCell>
-                    <TableCell align="right">{row.bucket_name}</TableCell>
-                    <TableCell align="right">{row.storage_used} MB</TableCell>
-                    <TableCell align="right">{row.storage_limit} MB</TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        aria-label="delete"
-                        onClick={() => handleDelete(row.user_id)}
+          <TableContainer
+            component={Paper}
+            sx={{ flexBasis: "45%", overflowX: "auto" }}
+          >
+            <Table sx={{ minWidth: 100 }} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>User ID</TableCell>
+                  <TableCell align="right">Bucket Name</TableCell>
+                  <TableCell align="right">Storage Used</TableCell>
+                  <TableCell align="right">Storage Limit</TableCell>
+                  <TableCell align="right"></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row) => (
+                    <TableRow key={row.user_id}>
+                      <TableCell
+                        style={{ width: 100 }}
+                        component="th"
+                        scope="row"
                       >
-                        <DeleteIcon />
-                      </IconButton>
-                      <IconButton
-                        color="primary"
-                        onClick={() =>
-                          handleOpenModal(row.user_id, row.storage_limit)
-                        }
-                        aria-label="Change Limit"
-                      >
-                        <Edit />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={rows.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </TableContainer>
-        <div>
-          <Bar data={data} options={options} />
-        </div>
+                        {row.user_id}
+                      </TableCell>
+                      <TableCell align="right">{row.bucket_name}</TableCell>
+                      <TableCell align="right">{row.storage_used} MB</TableCell>
+                      <TableCell align="right">
+                        {row.storage_limit} MB
+                      </TableCell>
+                      <TableCell align="right">
+                        <IconButton
+                          aria-label="delete"
+                          onClick={() => handleDelete(row.user_id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                        <IconButton
+                          color="primary"
+                          onClick={() =>
+                            handleOpenModal(row.user_id, row.storage_limit)
+                          }
+                          aria-label="Change Limit"
+                        >
+                          <Edit />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={rows.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </TableContainer>
+          <Box sx={{ flexBasis: "45%", overflowX: "auto", ml: 2 }}>
+            <Bar data={data} options={options} />
+          </Box>
+        </Box>{" "}
       </Box>
 
       <Modal open={openModal} onClose={handleCloseModal}>
