@@ -1,20 +1,23 @@
-version: "3"
-
+version: '3.8'
 services:
   backend:
+    env_file:
+      - backend/.env
     build:
-      context: .
-      dockerfile: Dockerfile.backend
-    image: backend
+      context: ./backend/
+      dockerfile: ./Dockerfile
+    restart: always
     ports:
-      - "5000:5000"
-    depends_on:
-      - frontend
+      - "127.0.0.1:8000:8000"
+    expose:
+      - 8000
 
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.chonky-frontend
-    image: frontend
+      context: ./chonky-frontend/
+      dockerfile: ./Dockerfile
+    restart: always
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
+    expose:
+      - 3000

@@ -37,9 +37,8 @@ export function ShareFilesModal(props) {
   const [permission, setPermission] = useState("");
   const [publicAccess, setPublicAccess] = useState(false);
 
-  
   useEffect(() => {
-    axios.get("http://localhost:5000/get_users").then((response) => {
+    axios.get("http://localhost:8000/get_users").then((response) => {
       const users = response.data.users.map((user) => user.user_id);
       setUsers(users);
     });
@@ -56,7 +55,7 @@ export function ShareFilesModal(props) {
     Handles the share button click event
   */
   function handleShare() {
-    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const data = jwtDecode(localStorage.getItem("token"));
     const sender = data["username"];
     const bucket_name = data["bucket_name"];
     if (publicAccess) {
@@ -66,7 +65,7 @@ export function ShareFilesModal(props) {
         file_name: props.sharedFile.id,
       };
       axios
-        .post("http://localhost:5000/add_public_file", requestBody)
+        .post("http://localhost:8000/add_public_file", requestBody)
         .then(function (response) {
           console.log(response);
           handleClose();
@@ -83,7 +82,7 @@ export function ShareFilesModal(props) {
         perms: permission === "read" ? "r" : "w",
       };
       axios
-        .post("http://localhost:5000/add_shared_file", requestBody)
+        .post("http://localhost:8000/add_shared_file", requestBody)
         .then(function (response) {
           console.log(response);
           handleClose();

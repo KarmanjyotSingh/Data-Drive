@@ -4,6 +4,7 @@ import { Grid, TextField } from "@mui/material";
 import CardContent from "@mui/material/CardContent";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 /*
 @description:
   This component is used to display the login page
@@ -22,15 +23,23 @@ function Login({ setToken }) {
   const handleLogin = (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:5000/login", {
+      .post("http://localhost:8000/login", {
         email: username,
         password: password,
       })
       .then((res) => {
         console.log(res);
+        console.log(res.data.access_token);
+        const x = jwtDecode(res.data.access_token);
+        console.log(x);
         if (res.data.status === 1) {
-          setToken(res.data.access_token);
-          navigate("/");
+          if (res.data.admin === 1) {
+            setToken(res.data.access_token);
+            navigate("/admin");
+          } else {
+            setToken(res.data.access_token);
+            navigate("/");
+          }
         }
       })
       .catch((err) => {
@@ -42,17 +51,17 @@ function Login({ setToken }) {
     <Grid
       container
       alignItems="center"
-      justifyContent="right" 
+      justifyContent="right"
       style={{
         minHeight: "100vh",
         backgroundColor: "#f5f5f5",
-        backgroundImage: "url('https://media.giphy.com/media/7AtHoQ9XWbpwLRxs0t/giphy.gif')",
+        backgroundImage:
+          "url('https://media.giphy.com/media/7AtHoQ9XWbpwLRxs0t/giphy.gif')",
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
-  
       <Grid item xs={12} sm={6} md={4}>
         <Card
           sx={{

@@ -1,16 +1,16 @@
 
 # Configurations for the backend
 url = "127.0.0.1:9000"
-access_key = "minioadmin"
-secret_key = "minioadmin"
+access_key = "redflags"
+secret_key = "redflags"
 secure = False
 
 base_bucket_name = "datadrive"
 
 # SQL Config
 host = "localhost"
-user = "redflag"
-password = "redflag"
+user = "redflags"
+password = "redflags"
 db = "DATA_DRIVE"
 
 PERMISSIONS = {

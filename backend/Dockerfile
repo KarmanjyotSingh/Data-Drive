@@ -1,12 +1,7 @@
-FROM python:3.11
+FROM python:3.8
 
-WORKDIR /backend
-
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
-
-COPY . .
-
-EXPOSE 5000
-CMD ["python", "-m", "flask", "run", "--host=0.0.0.0"]
-
+WORKDIR /code
+COPY ./requirements.txt /code/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+COPY ./ /code/
+CMD ["uvicorn", "app_fast:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -58,6 +58,22 @@ class SQL_Db:
             print("Error in get_users: ", e)
             return None
 
+    def get_bucket_name(self, user_id):
+        """
+        get bucket name of a user from the database
+        :param user_id: user id : str
+        :return: bucket name : str
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "SELECT bucket_name FROM Users WHERE user_id = %s"
+                cursor.execute(sql, (user_id))
+                result = cursor.fetchone()
+                return result["bucket_name"]
+        except Exception as e:
+            print("Error in get_bucket_name: ", e)
+            return None
+
     def verify_user(self, user_id, password):
         """
         check if a user exists in the database
@@ -113,6 +129,7 @@ class SQL_Db:
         except Exception as e:
             print("Error in remove_shared_file: ", e)
             return 0
+
     def add_shared_file(
         self, sender_id, reciever_id, file_name, bucket_name, perms="r"
     ):
@@ -236,7 +253,7 @@ class SQL_Db:
         except Exception as e:
             print("Error in get_public_files: ", e)
             return None
-        
+
     def get_public_files(self, user_id):
         """
         get all public files of a user from the database
@@ -252,8 +269,8 @@ class SQL_Db:
         except Exception as e:
             print("Error in get_public_files: ", e)
             return None
-        
-    def is_public(self,user_id,bucket_name,file_name):
+
+    def is_public(self, user_id, bucket_name, file_name):
         """
         check if a file is public
         :param user_id: user id : str
@@ -264,7 +281,7 @@ class SQL_Db:
         try:
             with self.conn.cursor() as cursor:
                 sql = "SELECT * FROM PublicFiles WHERE user_id = %s AND bucket_name = %s AND file_name = %s"
-                cursor.execute(sql, (user_id,file_name,bucket_name))
+                cursor.execute(sql, (user_id, file_name, bucket_name))
                 result = cursor.fetchone()
                 if result:
                     return 1
@@ -291,6 +308,7 @@ class SQL_Db:
         except Exception as e:
             print("Error in get_shared_file_data: ", e)
             return None
+
     def remove_public_file(self, user_id, file_name, bucket_name):
         """
         remove a public file from the database
@@ -314,7 +332,7 @@ class SQL_Db:
         update storage of a user in the database
         :param user_id: user id : str
         :param type: type of operation : str
-        :param size: size of the file : int
+        :param size: size of the file : float
         :return: status of the operation : int
         """
         try:
@@ -334,7 +352,7 @@ class SQL_Db:
         """
         get storage of a user from the database
         :param user_id: user id : str
-        :return: storage of the user : int
+        :return: storage of the user : float
         """
         try:
             with self.conn.cursor() as cursor:
@@ -350,7 +368,7 @@ class SQL_Db:
         """
         get storage of a user from the database
         :param user_id: user id : str
-        :return: storage of the user : int
+        :return: storage of the user : float
         """
         try:
             with self.conn.cursor() as cursor:
@@ -381,7 +399,7 @@ class SQL_Db:
         """
         change the storage_limit of the user to new value that is >= storage_used
         :param user_id: user id : str
-        :param limit: new limit : int
+        :param limit: new limit : float
         :return: status of the operation : int
         """
         try:
@@ -399,3 +417,67 @@ class SQL_Db:
         except Exception as e:
             print("Error in change_limit: ", e)
             return 0
+
+    def bucket_storage_limit(self, bucket_name):
+        """
+        get storage limit of a bucket
+        :param bucket_name: bucket name : str
+        :return: storage limit : float
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "SELECT storage_limit FROM Buckets WHERE bucket_name = %s"
+                cursor.execute(sql, (bucket_name))
+                result = cursor.fetchone()
+                return result["storage_limit"]
+        except Exception as e:
+            print("Error in bucket_storage_limit: ", e)
+            return 0
+
+    def bucket_storage_used(self, bucket_name):
+        """
+        get storage used of a bucket
+        :param bucket_name: bucket name : str
+        :return: storage used : float
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "SELECT SUM(storage_used) FROM Users WHERE bucket_name = %s"
+                cursor.execute(sql, (bucket_name))
+                result = cursor.fetchone()
+                return result["SUM(storage_used)"]
+        except Exception as e:
+            print("Error in bucket_storage_used: ", e)
+            return 0
+
+    def add_bucket(self, bucket_name):
+        """
+        add a bucket to the database
+        :param bucket_name: bucket name : str
+        :param storage_limit: storage limit : float
+        :return: status of the operation : int
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "INSERT INTO Buckets (bucket_name) VALUES (%s)"
+                cursor.execute(sql, (bucket_name))
+                self.conn.commit()
+                return 1
+        except Exception as e:
+            print("Error in add_bucket: ", e)
+            return 0
+
+    def get_buckets(self):
+        """
+        get all buckets from the database
+        :return: buckets : list
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                sql = "SELECT bucket_name FROM Buckets"
+                cursor.execute(sql)
+                result = cursor.fetchall()
+                return result
+        except Exception as e:
+            print("Error in get_buckets: ", e)
+            return None

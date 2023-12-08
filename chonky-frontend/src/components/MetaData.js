@@ -23,7 +23,7 @@ export default function MetaDataPane({
 
   // get the list of users with whom the file is shared
   useEffect(() => {
-    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const data = jwtDecode(localStorage.getItem("token"));
     const sender = data["username"];
     const bucket_name = data["bucket_name"];
     const requestBody = {
@@ -32,7 +32,7 @@ export default function MetaDataPane({
       bucket_name: bucket_name,
     };
     axios
-      .post("http://localhost:5000/get_shared_file_data", requestBody)
+      .post("http://localhost:8000/get_shared_file_data", requestBody)
       .then((response) => {
         console.log(response.data);
         const users = response.data.users.map((user) => user.reciever_id);

@@ -52,13 +52,13 @@ export function ManageSharingModal(props) {
   const [isPublic, setIsPublic] = useState(false);
   const [editModal, setOpenEditModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  
+
   /*
   @descriptiion:
   Initialises the initial sharing state of the component
   */
   useEffect(() => {
-    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const data = jwtDecode(localStorage.getItem("token"));
     const sender = data["username"];
     const bucket_name = data["bucket_name"];
     const requestBody = {
@@ -67,7 +67,7 @@ export function ManageSharingModal(props) {
       bucket_name: bucket_name,
     };
     axios
-      .post("http://localhost:5000/get_shared_file_data", requestBody)
+      .post("http://localhost:8000/get_shared_file_data", requestBody)
       .then((response) => {
         console.log(response.data);
         setIsPublic(response.data.isPublic);
@@ -91,7 +91,7 @@ export function ManageSharingModal(props) {
   Gets the list of users from the backend
   */
   useEffect(() => {
-    axios.get("http://localhost:5000/get_users").then((response) => {
+    axios.get("http://localhost:8000/get_users").then((response) => {
       const users = response.data.users.map((user) => user.user_id);
       setUsers(users);
     });
@@ -110,7 +110,7 @@ export function ManageSharingModal(props) {
   */
   function handleShare() {
     if (isPublic) {
-      const data = jwtDecode(localStorage.getItem("token")).sub;
+      const data = jwtDecode(localStorage.getItem("token"));
       const sender = data["username"];
       const bucket_name = data["bucket_name"];
       const requestBody = {
@@ -119,7 +119,7 @@ export function ManageSharingModal(props) {
         file_name: props.sharedFile.id,
       };
       axios
-        .post("http://localhost:5000/add_public_file", requestBody)
+        .post("http://localhost:8000/add_public_file", requestBody)
         .then(function (response) {
           console.log(response);
           handleClose();
@@ -129,7 +129,7 @@ export function ManageSharingModal(props) {
         });
       return;
     }
-    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const data = jwtDecode(localStorage.getItem("token"));
     const sender = data["username"];
     const bucket_name = data["bucket_name"];
     const requestBody = {
@@ -138,7 +138,7 @@ export function ManageSharingModal(props) {
       file_name: props.sharedFile.id,
     };
     axios
-      .post("http://localhost:5000/remove_public_file", requestBody)
+      .post("http://localhost:8000/remove_public_file", requestBody)
       .then(function (response) {
         console.log(response);
       })
@@ -157,7 +157,7 @@ export function ManageSharingModal(props) {
       perms: permission === "read" ? "r" : "w",
     };
     axios
-      .post("http://localhost:5000/add_shared_file", requestBody2)
+      .post("http://localhost:8000/add_shared_file", requestBody2)
       .then(function (response) {
         console.log(response);
       })
@@ -186,7 +186,7 @@ export function ManageSharingModal(props) {
   Deletes the shared access from the user
   */
   function handleDelete(recieverId) {
-    const data = jwtDecode(localStorage.getItem("token")).sub;
+    const data = jwtDecode(localStorage.getItem("token"));
     const sender = data["username"];
     const bucket_name = data["bucket_name"];
     const requestBody = {
@@ -196,7 +196,7 @@ export function ManageSharingModal(props) {
       bucket_name: bucket_name,
     };
     axios
-      .post("http://localhost:5000/remove_shared_file", requestBody)
+      .post("http://localhost:8000/remove_shared_file", requestBody)
       .then(function (response) {
         console.log(response);
         handleClose();
