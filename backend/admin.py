@@ -113,13 +113,14 @@ def currentBucketStorage():
         }
 
 
-def getDefaultStorageLimit():
+def getBucketStorageLimit():
     """
     @description: 
         Get the default storage limit
     @param
         None
     """
+    '''
     config = dotenv_values(".env")
     return {
         "status": 200,
@@ -127,9 +128,18 @@ def getDefaultStorageLimit():
             "default_storage_limit": config["defaultStorageLimit"]
         }
     }
+    '''
+    # get the storage limit from sql
+    sql_client = SQL_Db()
+    return {
+        "status": 200,
+        "data": {
+            "default_storage_limit": sql_client.bucket_storage_limit(getBucket())
+        }
+    }
 
 
-def updateDefaultStorageLimit(newStorageLimit):
+def updateBucketStorageLimit(newStorageLimit):
     """
     @description: 
         Update the default storage limit
@@ -139,20 +149,24 @@ def updateDefaultStorageLimit(newStorageLimit):
     """
     try:
         # get the current configurations
-        config = dotenv_values(".env")
-        config["defaultStorageLimit"] = newStorageLimit
-        with open(".env", "r") as f:
-            lines = f.readlines()
-            with open(".env", "w") as f:
-                for line in lines:
-                    if "=" in line:
-                        key, _ = line.strip().split("=", 1)
-                        if key in config:
-                            f.write(f"{key}={config[key]}\n")
-                        else:
-                            f.write(line)
-                    else:
-                        f.write(line)
+        #config = dotenv_values(".env")
+        #config["defaultStorageLimit"] = newStorageLimit
+        #with open(".env", "r") as f:
+        #    lines = f.readlines()
+        #    with open(".env", "w") as f:
+        #        for line in lines:
+        #            if "=" in line:
+        #                key, _ = line.strip().split("=", 1)
+        #               if key in config:
+        #                    f.write(f"{key}={config[key]}\n")
+        #                else:
+        #                    f.write(line)
+        #            else:
+        #                f.write(line)
+        
+        # update the storage limit for the bucket
+        sql_client = SQL_Db()
+        sql_client.update_bucket_storage_limit(getBucket(), newStorageLimit)
         return True
     except Exception as e:
         print(e)

@@ -445,7 +445,11 @@ class SQL_Db:
                 sql = "SELECT SUM(storage_used) FROM Users WHERE bucket_name = %s"
                 cursor.execute(sql, (bucket_name))
                 result = cursor.fetchone()
-                return result["SUM(storage_used)"]
+                result = result["SUM(storage_used)"]
+                if result is None:
+                    return 0
+                else:
+                    return result
         except Exception as e:
             print("Error in bucket_storage_used: ", e)
             return 0
@@ -481,3 +485,21 @@ class SQL_Db:
         except Exception as e:
             print("Error in get_buckets: ", e)
             return None
+
+    def update_bucket_storage_limit(self, bucket_name, storage_limit):
+        """
+        Update the storage limit of a bucket.
+        :param bucket_name: bucket name : str
+        :param storage_limit: storage limit : float
+        :return: status of the operation : int
+        """
+        try:
+            print("Updating bucket storage limit", bucket_name, storage_limit)
+            with self.conn.cursor() as cursor:
+                sql = "UPDATE Buckets SET storage_limit = %s WHERE bucket_name = %s"
+                cursor.execute(sql, (storage_limit, bucket_name))
+                self.conn.commit()
+                return 1
+        except Exception as e:
+            print("Error in update_bucket_storage_limit: ", e)
+            return 0

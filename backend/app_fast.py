@@ -371,16 +371,11 @@ def add_shared_file(schema: Schema):
     bucket_name = schema.bucket_name
     perms = schema.perms
     sql_client = SQL_Db()
-    # check if user exists, if does not exist, return 0
-    if sql_client.check_user(reciever_id) == 0:
-        return {"status": 0}
-    else:
-        return
-        {
-            "status": sql_client.add_shared_file(
-                sender_id, reciever_id, file_name, bucket_name, perms
-            )
-        }
+    return {
+        "status": sql_client.add_shared_file(
+            sender_id, reciever_id, file_name, bucket_name, perms
+        )
+    }
 
 # Get shared files from database
 @app.post("/get_shared_files")
@@ -630,19 +625,19 @@ def current_bucket_storage():
     '''
     return admin.currentBucketStorage()
 
-# Get default storage limit
-@app.get("/get_default_storage_limit")
-def get_default_storage_limit():
+# Get storage limit for bucket in env
+@app.get("/get_bucket_storage_limit")
+def get_bucket_storage_limit():
     '''
-    Get default storage limit
+    Get storage limit
     '''
-    return admin.getDefaultStorageLimit()
+    return admin.getBucketStorageLimit()
 
-# Update default storage limit
-@app.post("/update_default_storage_limit")
-def update_default_storage_limit(storage: Storage):
+# Update storage limit for bucket in env
+@app.post("/update_bucket_storage_limit")
+def update_bucket_storage_limit(storage: Storage):
     '''
-    Update default storage limit
+    Update storage limit
 
     Parameters
     ----------
@@ -650,7 +645,8 @@ def update_default_storage_limit(storage: Storage):
         Storage object containing storage limit
     '''
     newLimit = storage.storage_limit
-    return admin.updateDefaultStorageLimit(newLimit)
+    print(newLimit)
+    return admin.updateBucketStorageLimit(newLimit)
 
 # Add bucket
 @app.post("/add_bucket")

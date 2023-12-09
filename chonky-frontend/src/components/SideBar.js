@@ -42,7 +42,7 @@ export default function SideBar({
       .then((response) => {
         setStorageUsed(response.data.used);
         console.log(response.data);
-        const storageTotalInGB = (response.data.limit / 1024 ** 3).toFixed(2);
+        const storageTotalInGB = (response.data.limit / 1000).toFixed(2);
 
         setStorageTotal(storageTotalInGB);
         setValue((response.data.used / response.data.limit) * 100);
@@ -99,8 +99,7 @@ export default function SideBar({
               onClick={() => {
                 setTab("sharedwithme");
                 const username =
-                  jwtDecode(localStorage.getItem("token"))["username"] +
-                  "/";
+                  jwtDecode(localStorage.getItem("token"))["username"] + "/";
                 console.log(username);
                 setRootFolderId(username);
               }}
@@ -111,8 +110,7 @@ export default function SideBar({
               onClick={() => {
                 setTab("sharedbyme");
                 const username =
-                  jwtDecode(localStorage.getItem("token"))["username"] +
-                  "/";
+                  jwtDecode(localStorage.getItem("token"))["username"] + "/";
                 console.log(username);
                 setRootFolderId(username);
               }}

@@ -126,7 +126,7 @@ export default function AdminDashboard() {
     }
     try {
       axios
-        .get("http://localhost:8000/get_default_storage_limit")
+        .get("http://localhost:8000/get_bucket_storage_limit")
         .then((res) => {
           console.log(res.data.data.default_storage_limit);
           setDefaultStorageLimit(res.data.data.default_storage_limit);
@@ -142,6 +142,7 @@ export default function AdminDashboard() {
     setBucketNameForm(newBucketName);
   }
   function handleUpdateBucket() {
+    setCurrentStorage(0);
     axios
       .post("http://localhost:8000/update_bucket", {
         bucket_name: bucketNameForm,
@@ -154,9 +155,10 @@ export default function AdminDashboard() {
         console.log(err);
       });
   }
-  function handleUpdateDefaultStorageLimit() {
-    axios.post("http://localhost:8000/update_default_storage_limit", {
-      newLimit: defaultStorageLimit,
+  function handleUpdateStorageLimit() {
+    console.log(defaultStorageLimit);
+    axios.post("http://localhost:8000/update_bucket_storage_limit", {
+      storage_limit: defaultStorageLimit,
     });
     // window.location.reload();
   }
@@ -260,8 +262,7 @@ export default function AdminDashboard() {
                   {currentBucket}
                 </Typography>
                 <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                  {currentStorage.toPrecision(2)} used of{" "}
-                  {currentLimit.toPrecision(2)} GB
+                  {currentStorage} used of {currentLimit} MB
                 </Typography>
                 <div style={{ width: 200, height: 200 }}>
                   <CircularProgressbar
@@ -321,7 +322,7 @@ export default function AdminDashboard() {
                     }
                   />
                   <Button variant="contained" onClick={handleUpdateBucket}>
-                    Update Bucket
+                    Change Bucket
                   </Button>
                 </Box>
               </CardContent>
@@ -338,7 +339,7 @@ export default function AdminDashboard() {
                 }}
               >
                 <Typography variant="h5" component="div">
-                  Default Storage Limit
+                  Storage Limit (in MB)
                 </Typography>
                 <TextField
                   id="outlined-basic"
@@ -346,11 +347,8 @@ export default function AdminDashboard() {
                   value={defaultStorageLimit}
                   onChange={(e) => setDefaultStorageLimit(e.target.value)}
                 />
-                <Button
-                  variant="contained"
-                  onClick={handleUpdateDefaultStorageLimit}
-                >
-                  Update Storage Limit
+                <Button variant="contained" onClick={handleUpdateStorageLimit}>
+                  Edit Limit
                 </Button>
               </Box>
             </Card>
